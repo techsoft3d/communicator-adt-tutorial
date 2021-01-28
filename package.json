@@ -1,0 +1,30 @@
+{
+  "name": "communicator-adt-tutorial",
+  "version": "1.0.0",
+  "description": "Integration between HOOPS Communicator and Azure Digital Twin",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/techsoft3d/communicator-adt-tutorial.git"
+  },
+  "keywords": [
+    "iot",
+    "adt",
+    "hoops"
+  ],
+  "author": "Jonathan Girroir",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/techsoft3d/communicator-adt-tutorial/issues"
+  },
+  "homepage": "https://github.com/techsoft3d/communicator-adt-tutorial#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "http": "0.0.1-security",
+    "msal": "^1.4.4",
+    "request": "^2.88.2"
+  }
+}

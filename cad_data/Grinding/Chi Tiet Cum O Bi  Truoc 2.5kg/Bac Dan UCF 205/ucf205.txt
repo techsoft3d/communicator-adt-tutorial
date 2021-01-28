@@ -1,0 +1,13 @@
+﻿"Symbol";"Value";"Unit";
+"TraceParts.PartNumber";"10-24032016-071553";"";
+"REFERENCE";"UCF205";"";
+"TraceParts.PartTitle";"Palier Auto-aligneurs - UCF";"";
+"TraceParts.InstanceId";"10-24032016-0715534ABUHH3BB108W4M2IUA5YNU9O";"";
+"DESIGN";"Palier auto-aligneur, UCF205, M10";"";
+"TraceParts.PartStatus";"Published";"";
+"TraceParts.PartStatusId";"";"";
+"SUPPLIER";"GISS";"";
+"TraceParts.PartVersion";"1.0.2";"";
+"TRACEPARTS";"TRACEPARTS";"";
+"TraceParts.PartLanguage";"fr";"";
+"TraceParts.ClassPath";"GISS:/F_GISS/GISS.080/GISS.080.050/10-24032016-071553";"";
