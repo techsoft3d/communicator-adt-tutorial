@@ -15,8 +15,9 @@ Node.js
 * Replace CLIENT_ID and AUTHORITY in /js/adt_helper.js to connect to your ADT graph
 
 ### Running the demo
-```npm install
-node app.js```
+npm install
+
+node app.js
 
 Open a browswer window and navigate to http://localhost:3000/
 
