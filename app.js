@@ -26,7 +26,6 @@ app.get('/adtConfig', function(req, res) {
 
 // req.params[0] is the adtId in onkects.json
 app.get("/data/*", (req, res, next) => {
-  console.log("data " + req.params[0]);
   const headers = {
     'Content-Type': 'application/json',
     'Authorization': 'Bearer ' + req.headers.authorization
@@ -88,7 +87,6 @@ app.post("/force_alert", (req, res, next) => {
 });
 
 app.post("/reset_alert", (req, res, next) => {
-
   var options = {
     'method': 'PATCH',
     'url': ADT_URL + 'Grinding.pu01.l01' + '?api-version=2020-10-31',
@@ -101,7 +99,6 @@ app.post("/reset_alert", (req, res, next) => {
   new Promise((resolve, reject) => {
     request(options, (error, response) => {
       if (error) throw new Error(error);
-      console.log(response.body);
     });
   }).then((result) => {
     res.send(result);
@@ -122,10 +119,10 @@ app.post("/update_data", (req, res, next) => {
   };
 
   request(options, (error, response) => {
+    if (error) console.log(err);
+    res.send(response);
 
   });
-  res.send("post request");
-
   // new Promise((resolve, reject) => {
   //   request(options, (error, response) => {
   //     if (error) throw new Error(error);

@@ -9,7 +9,6 @@ function setConfig(data) {
   AUTHORITY = "https://login.microsoftonline.com/" + data.tenant;
 }
 
-
 // Access token will be granted once you loged in.
 accessToken = null;
 
@@ -25,7 +24,6 @@ const invokeWithLoading = async callback => {
 };
 
 async function azureIoTLogin() {
-  console.log(CLIENT_ID);
 
   // Config object to be passed to Msal on creation
   const msalConfig = {
@@ -41,10 +39,7 @@ async function azureIoTLogin() {
   };
 
   const myMSALObj = new Msal.UserAgentApplication(msalConfig);
-
   const loginRequest = { scopes: ["https://digitaltwins.azure.net/.default"] };
-
-  console.log(myMSALObj.getAccount());
 
   if (!myMSALObj.getAccount()) {
     await invokeWithLoading(async () => await myMSALObj.loginPopup(loginRequest));
@@ -55,22 +50,22 @@ async function azureIoTLogin() {
     try {
       const response = await myMSALObj.acquireTokenSilent(loginRequest);
       accessToken = response.accessToken;
-      console.log(response);
     } catch (err) {
-      console.log(err);
       // Could also check if err instance of InteractionRequiredAuthError if you can import the class
       if (err.name === "InteractionRequiredAuthError") {
         const response = await invokeWithLoading(async () => await myMSALObj.acquireTokenPopup(loginRequest));
         accessToken = response.accessToken;
+      } else {
+        console.log(err);
       }
     }
   }
 }
+
 // param "object" is object.adtID
 function get_data(object) {
   return new Promise((resolve, reject) => {
     if (!accessToken) {
-      console.log("No access token!");
       return;
     }
 
@@ -78,14 +73,12 @@ function get_data(object) {
     xhr.withCredentials = true;
 
     xhr.addEventListener("readystatechange", function () {
-      console.log("ready state change " + this.readyState);
       if (this.readyState === 4) {
         resolve(this.responseText);
       }
     });
 
     xhr.addEventListener("error", function (e) {
-      console.log("error!");
       console.log(e);
     });
 
@@ -94,7 +87,6 @@ function get_data(object) {
     xhr.setRequestHeader('Authorization', accessToken);
 
     xhr.send();
-    console.log(xhr);
   })
 }
 
@@ -143,8 +135,10 @@ function reset_alert() {
 /// For updating ADT data
 
 function update_data() {
-  console.log("update");
-  if (!accessToken) return;
+  if (!accessToken) {
+    console.log("update no access token");
+    return;
+  }
 
   update_step_data("fanning");
   update_step_data("grinding");

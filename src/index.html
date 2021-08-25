@@ -107,8 +107,11 @@
 
     function sceneReadyFunc() {
       objects.forEach(object => {
-        loadModel(object),
-          setInterval(function () { poll(object) }, 5000);
+        loadModel(object);
+        setInterval(function () {
+          update_data();
+          poll(object);
+        }, 5000);
       });
 
       hwv.view.setCamera(Communicator.Camera.create(new Communicator.Point3(4102, 2692, 11160),
