@@ -76,14 +76,20 @@
     function poll(object) {
       get_data(object.adtId).then((result) => {
         adtData = JSON.parse(result);
-        // console.log(adtData);
 
         objects.forEach(object => {
           if (object.adtId == adtData.$dtId) {
             var text = "";
             Object.keys(adtData).forEach(key => {
               if (key != 'StepId' && key[0] != '$') {
-                text = text + key + ": " + adtData[key] + "\n";
+                let number = Number(adtData[key]);
+                if (!isNaN(number)) {
+                  // Round the number to 2 decimal places
+                  number = Math.round((number + Number.EPSILON) * 100) / 100;
+                  text = text + key + ": " + number + "\n";
+                } else {
+                  text = text + key + ": " + adtData[key] + "\n";
+                }
               }
               if (key.includes("Alert")) {
                 if (adtData[key] == true) {
