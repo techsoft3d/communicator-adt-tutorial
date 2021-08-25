@@ -1,4 +1,5 @@
-var adtConfig = require(__dirname + "/adt.config.js");
+const fs = require("fs");
+const adtConfig = JSON.parse(fs.readFileSync('adt.config.json'));
 const ADT_URL = 'https://' + adtConfig.hostname + '/';
 
 var express = require("express");
@@ -6,8 +7,6 @@ const request = require('request');
 
 var app = express();
 const server = require('http').createServer(app);
-
-const { access } = require("fs");
 
 app.listen(3000, () => {
   console.log("Server running on port 3000");
