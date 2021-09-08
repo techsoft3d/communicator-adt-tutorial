@@ -10,7 +10,8 @@ function setConfig(data) {
 }
 
 // Access token will be granted once you loged in.
-accessToken = null;
+var accessToken = null;
+var vibrationAlertTriggered = false;
 
 const invokeWithLoading = async callback => {
   let response = null;
@@ -91,6 +92,7 @@ function get_data(object) {
 }
 
 function force_alert() {
+  vibrationAlertTriggered = true;
   return new Promise((resolve, reject) => {
     if (!accessToken) reject();
 
@@ -112,6 +114,7 @@ function force_alert() {
 }
 
 function reset_alert() {
+  vibrationAlertTriggered = false;
   return new Promise((resolve, reject) => {
     if (!accessToken) reject();
 
@@ -185,8 +188,10 @@ function generateMessage(deviceType) {
         PowerUsage: powerUsage,
         GrindingTime: roastingTime,
         Force: force,
-        Vibration: vibration
       };
+      if (vibrationAlertTriggered == false) {
+        data["Vibration"] = vibration;
+      }
       break;
     case "fanning":
       data = {

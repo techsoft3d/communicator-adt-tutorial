@@ -74,7 +74,7 @@ app.post("/force_alert", (req, res, next) => {
       'Content-Type': 'application/json-patch+json',
       'Authorization': 'Bearer ' + req.headers.authorization,
     },
-    body: "[{\n\"op\": \"replace\",\n\"path\": \"/vibrationAlert\",\n\"value\": true\n},\n{\n\"op\": \"replace\",\n\"path\": \"/Vibration\",\n\"value\": 300\n}\n]"
+    body: "[{\n\"op\": \"replace\",\n\"path\": \"/VibrationAlert\",\n\"value\": true\n},\n{\n\"op\": \"replace\",\n\"path\": \"/Vibration\",\n\"value\": 300\n}\n]"
   };
   new Promise((resolve, reject) => {
     request(options, (error, response) => {
@@ -88,12 +88,12 @@ app.post("/force_alert", (req, res, next) => {
 app.post("/reset_alert", (req, res, next) => {
   var options = {
     'method': 'PATCH',
-    'url': ADT_URL + 'Grinding.pu01.l01' + '?api-version=2020-10-31',
+    'url': ADT_URL + 'digitaltwins/Grinding.pu01.l01' + '?api-version=2020-10-31',
     'headers': {
       'Content-Type': 'application/json-patch+json',
       'Authorization': 'Bearer ' + req.headers.authorization,
     },
-    body: "[{\n\"op\": \"replace\",\n\"path\": \"/vibrationAlert\",\n\"value\": false\n},\n{\n\"op\": \"replace\",\n\"path\": \"/Vibration\",\n\"value\": 260\n}\n]"
+    body: "[{\n\"op\": \"replace\",\n\"path\": \"/VibrationAlert\",\n\"value\": false\n},\n{\n\"op\": \"replace\",\n\"path\": \"/Vibration\",\n\"value\": 260\n}\n]"
   };
   new Promise((resolve, reject) => {
     request(options, (error, response) => {

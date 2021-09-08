@@ -82,9 +82,9 @@
             var text = object.adtId + "\n";
             Object.keys(adtData).forEach(key => {
               if (key != 'StepId' && key[0] != '$') {
-                let number = Number(adtData[key]);
-                if (!isNaN(number)) {
+                if (typeof(adtData[key]) === "number") {
                   // Round the number to 2 decimal places
+                  let number = Number(adtData[key]);
                   number = Math.round((number + Number.EPSILON) * 100) / 100;
                   text = text + key + ": " + number + "\n";
                 } else {
