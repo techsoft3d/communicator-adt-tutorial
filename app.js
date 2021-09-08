@@ -69,7 +69,7 @@ app.get("/relationships/*", (req, res, next) => {
 app.post("/force_alert", (req, res, next) => {
   var options = {
     'method': 'PATCH',
-    'url': ADT_URL + 'Grinding.pu01.l01' + '?api-version=2020-10-31',
+    'url': ADT_URL + 'digitaltwins/Grinding.pu01.l01' + '?api-version=2020-10-31',
     'headers': {
       'Content-Type': 'application/json-patch+json',
       'Authorization': 'Bearer ' + req.headers.authorization,

@@ -184,7 +184,8 @@ function generateMessage(deviceType) {
         ChasisTemperature: temperature,
         PowerUsage: powerUsage,
         GrindingTime: roastingTime,
-        Force: force
+        Force: force,
+        Vibration: vibration
       };
       break;
     case "fanning":
