@@ -143,6 +143,8 @@ function update_data() {
   update_step_data("fanning");
   update_step_data("grinding");
   update_step_data("molding");
+  update_step_data("conching");
+  update_step_data("winnowing");
 }
 
 // deviceType: "grinding", "fanning", or "molding"
@@ -194,6 +196,8 @@ function generateMessage(deviceType) {
       };
       break;
     case "molding":
+    case "conching":
+    case "winnowing":
       data = {
         ChasisTemperature: temperature,
         PowerUsage: powerUsage

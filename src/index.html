@@ -79,7 +79,7 @@
 
         objects.forEach(object => {
           if (object.adtId == adtData.$dtId) {
-            var text = "";
+            var text = object.adtId + "\n";
             Object.keys(adtData).forEach(key => {
               if (key != 'StepId' && key[0] != '$') {
                 let number = Number(adtData[key]);

@@ -7,11 +7,25 @@
         "rotation":0
     },
     {
+        "adtId":"Winnowing.pu01.l01",
+        "scsFile":"./scs_models/winnowing.scs",
+        "scale":1,
+        "x":4784,"y":-939,"z":-1157,
+        "rotation":0
+    },
+    {
         "adtId":"Grinding.pu01.l01",
         "scsFile":"./scs_models/Grinding.scs",
         "scale":2,
         "x":7600,"y":0,"z":-600,
         "rotation":0
+    },
+    {
+        "adtId":"Conching.pu01.l01",
+        "scsFile":"./scs_models/CONCHING.scs",
+        "scale":0.75,
+        "x":10700,"y":-100,"z":-500,
+        "rotation":90
     },
     {
         "adtId":"Molding.pu01.l01",
