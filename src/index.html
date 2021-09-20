@@ -43,6 +43,7 @@
     var md = new MobileDetect(window.navigator.userAgent);
     var currentSelection = null;
     var objects = null;
+    var triggerButton = null;
 
     $.getJSON("objects.json", null, (data) => {
       objects = data;
@@ -95,8 +96,10 @@
               if (key.includes("Alert")) {
                 if (adtData[key] == true) {
                   hwv.selectionManager.selectNode(object.nodeId);
+                  triggerButton.textContent = "Reset";
                 } else {
                   hwv.selectionManager.clear();
+                  triggerButton.textContent = "Trigger";
                 }
 
               }
@@ -113,6 +116,7 @@
     }
 
     function sceneReadyFunc() {
+      triggerButton = document.getElementById('trigger-button');
       objects.forEach(object => {
         loadModel(object);
         setInterval(function () {
@@ -174,13 +178,18 @@
     };
 
     function onToggleTrigger() {
-      var elem = document.getElementById('trigger-button');
-      if (elem.textContent == "Trigger") {
+      if (triggerButton.textContent == "Trigger") {
         force_alert();
-        elem.textContent = "Reset";
+        objects.forEach(object => {
+          poll(object);
+        });
+        triggerButton.textContent = "Reset";
       } else {
         reset_alert();
-        elem.textContent = "Trigger";
+        objects.forEach(object => {
+          poll(object);
+        });
+        triggerButton.textContent = "Trigger";
       }
     }
 

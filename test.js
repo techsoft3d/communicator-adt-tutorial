@@ -8,6 +8,8 @@ const update_data = require("./update_data");
 const adtConfig = require('./adt.config');
 const ADT_URL = 'https://' + adtConfig.hostname + '/';
 
+var vibrationAlertTriggered = false;
+
 app.listen(3300, () => {
   console.log("Server running on port 3300");
 });
@@ -26,7 +28,6 @@ app.get("/data/*", (req, res, next) => {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token
     };
-
     const url = ADT_URL + 'digitaltwins/' + req.params[0] + '?api-version=2020-10-31';
 
     axios.get(url, {
@@ -39,7 +40,18 @@ app.get("/data/*", (req, res, next) => {
   });
 });
 
+
+app.post("/force_alert", (req, res, next) => {
+  vibrationAlertTriggered = true;
+  update_data(vibrationAlertTriggered);
+});
+
+app.post("/reset_alert", (req, res, next) => {
+  vibrationAlertTriggered = false;
+  update_data(vibrationAlertTriggered);
+});
+
 // Start updating data every 5 seconds
 setInterval(() => {
-  update_data();
+  update_data(vibrationAlertTriggered);
 }, 5000);

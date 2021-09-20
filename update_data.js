@@ -6,16 +6,16 @@ const ADT_URL = 'https://' + adtConfig.hostname + '/';
 /// For updating data
 /// Updading Fanning, Grinding, and Molding
 
-function update_data() {
-  update_step_data("fanning");
-  update_step_data("grinding");
-  update_step_data("molding");
-  update_step_data("conching");
-  update_step_data("winnowing");
+function update_data(vibrationAlertTriggered) {
+  update_step_data("fanning", vibrationAlertTriggered);
+  update_step_data("grinding", vibrationAlertTriggered);
+  update_step_data("molding", vibrationAlertTriggered);
+  update_step_data("conching", vibrationAlertTriggered);
+  update_step_data("winnowing", vibrationAlertTriggered);
 }
 
 // deviceType: "grinding", "fanning", or "molding"
-function update_step_data(deviceType) {
+function update_step_data(deviceType, vibrationAlertTriggered) {
   msal.getToken().then(token => {
     const headers = {
       'Content-Type': 'application/json',
@@ -23,19 +23,15 @@ function update_step_data(deviceType) {
     };
 
     const url = ADT_URL + 'digitaltwins/' + capitalizeFirstLetter(deviceType) + '.pu01.l01' + '?api-version=2020-10-31';
-    axios.patch(url, generateMessage(deviceType), {
+    axios.patch(url, generateMessage(deviceType, vibrationAlertTriggered), {
       headers: headers
-    }).then(patchResponse => {
-      // console.log(patchResponse);
-    }).catch(err => {
-      console.log("err")
     });
   });
 }
 
 // Generating message for "grinding", "fanning", or "molding"
 // Return a string
-function generateMessage(deviceType) {
+function generateMessage(deviceType, vibrationAlertTriggered) {
   const fanSpeed = 10 + (Math.random() * 4); // range: [10, 14]
   const temperature = 200 + (Math.random() * 10); // range: [200, 300]
   const powerUsage = 60 + (Math.random() * 20); // range: [60, 80]
@@ -51,10 +47,9 @@ function generateMessage(deviceType) {
         PowerUsage: powerUsage,
         GrindingTime: roastingTime,
         Force: force,
+        VibrationAlert: vibrationAlertTriggered,
+        Vibration: vibrationAlertTriggered ? 300 : vibration
       };
-      // if (vibrationAlertTriggered == false) {
-      //   data["Vibration"] = vibration;
-      // }
       break;
     case "fanning":
       data = {
