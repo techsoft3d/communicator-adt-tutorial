@@ -7,11 +7,6 @@ const ADT_URL = 'https://' + adtConfig.hostname + '/';
 /// Updading Fanning, Grinding, and Molding
 
 function update_data() {
-  if (!accessToken) {
-    console.log("update no access token");
-    return;
-  }
-
   update_step_data("fanning");
   update_step_data("grinding");
   update_step_data("molding");
@@ -27,13 +22,13 @@ function update_step_data(deviceType) {
       'Authorization': 'Bearer ' + token
     };
 
-    const url = ADT_URL + 'digitaltwins/' + capitalizeFirstLetter(req.body["device"]) + '.pu01.l01' + '?api-version=2020-10-31';
+    const url = ADT_URL + 'digitaltwins/' + capitalizeFirstLetter(deviceType) + '.pu01.l01' + '?api-version=2020-10-31';
     axios.patch(url, generateMessage(deviceType), {
       headers: headers
     }).then(patchResponse => {
-
+      // console.log(patchResponse);
     }).catch(err => {
-
+      console.log("err")
     });
   });
 }
@@ -57,9 +52,9 @@ function generateMessage(deviceType) {
         GrindingTime: roastingTime,
         Force: force,
       };
-      if (vibrationAlertTriggered == false) {
-        data["Vibration"] = vibration;
-      }
+      // if (vibrationAlertTriggered == false) {
+      //   data["Vibration"] = vibration;
+      // }
       break;
     case "fanning":
       data = {
@@ -94,3 +89,5 @@ function generateMessage(deviceType) {
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
+
+module.exports = update_data;

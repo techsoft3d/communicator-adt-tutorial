@@ -31,7 +31,6 @@ const cca = new msal.ConfidentialClientApplication(msalConfig);
 
 /**
  * Acquires token with client credentials.
- * @param {object} tokenRequest
  */
 async function getToken() {
   return (await cca.acquireTokenByClientCredential(tokenRequest)).accessToken;

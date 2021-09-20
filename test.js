@@ -3,6 +3,7 @@ const express = require("express");
 const axios = require("axios").default;
 const app = express();
 const server = require('http').createServer(app);
+const update_data = require("./update_data");
 
 const adtConfig = require('./adt.config');
 const ADT_URL = 'https://' + adtConfig.hostname + '/';
@@ -37,3 +38,8 @@ app.get("/data/*", (req, res, next) => {
     });
   });
 });
+
+// Start updating data every 5 seconds
+setInterval(() => {
+  update_data();
+}, 5000);
