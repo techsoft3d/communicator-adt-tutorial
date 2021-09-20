@@ -180,17 +180,13 @@
     function onToggleTrigger() {
       if (triggerButton.textContent == "Trigger") {
         force_alert();
-        objects.forEach(object => {
-          poll(object);
-        });
-        triggerButton.textContent = "Reset";
       } else {
         reset_alert();
-        objects.forEach(object => {
-          poll(object);
-        });
-        triggerButton.textContent = "Trigger";
       }
+      triggerButton.disabled = true;
+      setTimeout(() => {
+        triggerButton.disabled = false;
+      }, 5000);
     }
 
   </script>

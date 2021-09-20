@@ -1,4 +1,4 @@
-const serverUrl = "http://localhost:3300/";
+const serverUrl = "http://localhost:3000/";
 
 // param "object" is object.adtID
 function get_data(object) {
@@ -23,6 +23,7 @@ function get_data(object) {
 }
 
 function force_alert() {
+  console.log("fa")
   var xhr = new XMLHttpRequest();
 
   xhr.open("POST", serverUrl + 'force_alert');
@@ -31,6 +32,7 @@ function force_alert() {
 }
 
 function reset_alert() {
+  console.log("ra");
   var xhr = new XMLHttpRequest();
 
   xhr.open("POST", serverUrl + 'reset_alert');

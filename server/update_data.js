@@ -1,6 +1,6 @@
 const axios = require("axios").default;
 const msal = require('./msal');
-const adtConfig = require('./adt.config');
+const adtConfig = require('../adt.config');
 const ADT_URL = 'https://' + adtConfig.hostname + '/';
 
 /// For updating data

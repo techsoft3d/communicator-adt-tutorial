@@ -1,5 +1,5 @@
 const msal = require('@azure/msal-node');
-const config = require('./adt.config');
+const config = require('../adt.config');
 
 /**
  * Configuration object to be passed to MSAL instance on creation.
