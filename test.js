@@ -1,0 +1,40 @@
+const msal = require('./msal');
+const express = require("express");
+const axios = require("axios").default;
+const app = express();
+const server = require('http').createServer(app);
+
+const adtConfig = require('./adt.config');
+const ADT_URL = 'https://' + adtConfig.hostname + '/';
+
+app.listen(3300, () => {
+  console.log("Server running on port 3300");
+});
+
+app.get('/', function (req, res) {
+  msal.getToken().then(result => {
+    const token = result["accessToken"];
+
+    res.json(result);
+  });
+});
+
+// req.params[0] is the adtId in objects.json
+app.get("/data/*", (req, res, next) => {
+  msal.getToken().then(token => {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    };
+
+    const url = ADT_URL + 'digitaltwins/' + req.params[0] + '?api-version=2020-10-31';
+
+    axios.get(url, {
+      headers: headers
+    }).then(axiosres => {
+      res.send(axiosres.data);
+    }).catch(err => {
+      res.status(418).send(err);
+    });
+  });
+});

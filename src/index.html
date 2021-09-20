@@ -115,7 +115,6 @@
       objects.forEach(object => {
         loadModel(object);
         setInterval(function () {
-          update_data();
           poll(object);
         }, 5000);
       });
@@ -137,20 +136,11 @@
       }
       else {
         matrix = hwv.getModel().getNodeNetMatrix(currentSelection);
-        //console.log(matrix);
       }
 
     }
 
     window.onload = function () {
-      // setInterval(() => {
-      //   update_data();
-      // }, 3000);
-
-      $.get("/adtConfig", (data) => {
-        setConfig(data);
-        azureIoTLogin();
-      });
 
       hwv = viewer = new Communicator.WebViewer({
         empty: true,
@@ -191,10 +181,6 @@
         reset_alert();
         elem.textContent = "Trigger";
       }
-    }
-
-    function toggleLogin() {
-      
     }
 
   </script>

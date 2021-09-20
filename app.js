@@ -1,5 +1,4 @@
-const fs = require("fs");
-const adtConfig = JSON.parse(fs.readFileSync('adt.config.json'));
+const adtConfig = require('./adt.config');
 const ADT_URL = 'https://' + adtConfig.hostname + '/';
 
 var express = require("express");
@@ -19,11 +18,7 @@ app.get('/', function (req, res) {
   res.sendFile(__dirname + '/src/index.html');
 });
 
-app.get('/adtConfig', function(req, res) {
-  res.send(adtConfig);
-});
-
-// req.params[0] is the adtId in onkects.json
+// req.params[0] is the adtId in objects.json
 app.get("/data/*", (req, res, next) => {
   const headers = {
     'Content-Type': 'application/json',
