@@ -22,9 +22,10 @@
   },
   "homepage": "https://github.com/techsoft3d/communicator-adt-tutorial#readme",
   "dependencies": {
+    "@azure/msal-node": "^1.3.1",
+    "axios": "^0.21.4",
     "express": "^4.17.1",
     "http": "0.0.1-security",
-    "msal": "^1.4.4",
-    "request": "^2.88.2"
+    "msal": "^1.4.4"
   }
 }

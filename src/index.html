@@ -43,6 +43,7 @@
     var md = new MobileDetect(window.navigator.userAgent);
     var currentSelection = null;
     var objects = null;
+    var triggerButton = null;
 
     $.getJSON("objects.json", null, (data) => {
       objects = data;
@@ -58,6 +59,7 @@
       hwv.model.loadSubtreeFromScsFile(-2, object.scsFile, m).then((nodeId) => {
         object.nodeId = nodeId[0];
         createMarkup(object);
+        poll(object);
       });
     }
 
@@ -82,7 +84,7 @@
             var text = object.adtId + "\n";
             Object.keys(adtData).forEach(key => {
               if (key != 'StepId' && key[0] != '$') {
-                if (typeof(adtData[key]) === "number") {
+                if (typeof (adtData[key]) === "number") {
                   // Round the number to 2 decimal places
                   let number = Number(adtData[key]);
                   number = Math.round((number + Number.EPSILON) * 100) / 100;
@@ -94,8 +96,10 @@
               if (key.includes("Alert")) {
                 if (adtData[key] == true) {
                   hwv.selectionManager.selectNode(object.nodeId);
+                  triggerButton.textContent = "Reset";
                 } else {
                   hwv.selectionManager.clear();
+                  triggerButton.textContent = "Trigger";
                 }
 
               }
@@ -112,10 +116,10 @@
     }
 
     function sceneReadyFunc() {
+      triggerButton = document.getElementById('trigger-button');
       objects.forEach(object => {
         loadModel(object);
         setInterval(function () {
-          update_data();
           poll(object);
         }, 5000);
       });
@@ -137,20 +141,11 @@
       }
       else {
         matrix = hwv.getModel().getNodeNetMatrix(currentSelection);
-        //console.log(matrix);
       }
 
     }
 
     window.onload = function () {
-      // setInterval(() => {
-      //   update_data();
-      // }, 3000);
-
-      $.get("/adtConfig", (data) => {
-        setConfig(data);
-        azureIoTLogin();
-      });
 
       hwv = viewer = new Communicator.WebViewer({
         empty: true,
@@ -183,18 +178,15 @@
     };
 
     function onToggleTrigger() {
-      var elem = document.getElementById('trigger-button');
-      if (elem.textContent == "Trigger") {
+      if (triggerButton.textContent == "Trigger") {
         force_alert();
-        elem.textContent = "Reset";
       } else {
         reset_alert();
-        elem.textContent = "Trigger";
       }
-    }
-
-    function toggleLogin() {
-      
+      triggerButton.disabled = true;
+      setTimeout(() => {
+        triggerButton.disabled = false;
+      }, 5000);
     }
 
   </script>
