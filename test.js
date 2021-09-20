@@ -11,12 +11,11 @@ app.listen(3300, () => {
   console.log("Server running on port 3300");
 });
 
-app.get('/', function (req, res) {
-  msal.getToken().then(result => {
-    const token = result["accessToken"];
+app.use(express.static('src'));
+// app.use(express.json());
 
-    res.json(result);
-  });
+app.get('/', function (req, res) {
+  res.sendFile(__dirname + '/src/index.html');
 });
 
 // req.params[0] is the adtId in objects.json

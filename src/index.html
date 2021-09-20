@@ -58,6 +58,7 @@
       hwv.model.loadSubtreeFromScsFile(-2, object.scsFile, m).then((nodeId) => {
         object.nodeId = nodeId[0];
         createMarkup(object);
+        poll(object);
       });
     }
 
@@ -82,7 +83,7 @@
             var text = object.adtId + "\n";
             Object.keys(adtData).forEach(key => {
               if (key != 'StepId' && key[0] != '$') {
-                if (typeof(adtData[key]) === "number") {
+                if (typeof (adtData[key]) === "number") {
                   // Round the number to 2 decimal places
                   let number = Number(adtData[key]);
                   number = Math.round((number + Number.EPSILON) * 100) / 100;

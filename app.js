@@ -117,14 +117,6 @@ app.post("/update_data", (req, res, next) => {
     res.send(response);
 
   });
-  // new Promise((resolve, reject) => {
-  //   request(options, (error, response) => {
-  //     if (error) throw new Error(error);
-  //     if (response.statusCode == 202) resolve(response);
-  //   });
-  // }).then((result) => {
-  //   res.send(result);
-  // });
 });
 
 function capitalizeFirstLetter(string) {
