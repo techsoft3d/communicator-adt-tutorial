@@ -1,35 +1,35 @@
 [
     {
-        "adtId":"Fanning.pu01.l01",
-        "scsFile":"./scs_models/FANNING.scs",
+        "adtId":"Fanning",
+        "scsFile":"./scs_models/Fanning.scs",
         "scale":1,
         "x":0,"y":0,"z":0,
         "rotation":0
     },
     {
-        "adtId":"Winnowing.pu01.l01",
-        "scsFile":"./scs_models/winnowing.scs",
+        "adtId":"Winnowing",
+        "scsFile":"./scs_models/Winnowing.scs",
         "scale":1,
         "x":4784,"y":-939,"z":-1157,
         "rotation":0
     },
     {
-        "adtId":"Grinding.pu01.l01",
+        "adtId":"Grinding",
         "scsFile":"./scs_models/Grinding.scs",
         "scale":2,
         "x":7600,"y":0,"z":-600,
         "rotation":0
     },
     {
-        "adtId":"Conching.pu01.l01",
-        "scsFile":"./scs_models/CONCHING.scs",
+        "adtId":"Conching",
+        "scsFile":"./scs_models/Conching.scs",
         "scale":0.75,
         "x":10700,"y":-100,"z":-500,
         "rotation":90
     },
     {
-        "adtId":"Molding.pu01.l01",
-        "scsFile":"./scs_models/Moulding.scs",
+        "adtId":"Molding",
+        "scsFile":"./scs_models/Molding.scs",
         "scale":1,
         "x":12500,"y":380,"z":65,
         "rotation":0

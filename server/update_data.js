@@ -14,7 +14,7 @@ function update_data(vibrationAlertTriggered) {
   update_step_data("winnowing", vibrationAlertTriggered);
 }
 
-// deviceType: "grinding", "fanning", or "molding"
+// deviceType: "grinding", "fanning", "conching", "winnowing", or "molding"
 function update_step_data(deviceType, vibrationAlertTriggered) {
   msal.getToken().then(token => {
     const headers = {
@@ -22,7 +22,7 @@ function update_step_data(deviceType, vibrationAlertTriggered) {
       'Authorization': 'Bearer ' + token
     };
 
-    const url = ADT_URL + 'digitaltwins/' + capitalizeFirstLetter(deviceType) + '.pu01.l01' + '?api-version=2020-10-31';
+    const url = ADT_URL + 'digitaltwins/' + capitalizeFirstLetter(deviceType) + '?api-version=2020-10-31';
     axios.patch(url, generateMessage(deviceType, vibrationAlertTriggered), {
       headers: headers
     });

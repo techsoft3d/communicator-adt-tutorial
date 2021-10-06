@@ -15,6 +15,8 @@ app.listen(3000, () => {
 });
 
 app.use(express.static('src'));
+app.use(express.json()); // for parsing application/json
+app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
 app.get('/', function (req, res) {
   res.sendFile(__dirname + '/src/index.html');
@@ -39,15 +41,33 @@ app.get("/data/*", (req, res, next) => {
   });
 });
 
-
 app.post("/force_alert", (req, res, next) => {
-  console.log("fa")
   vibrationAlertTriggered = true;
 });
 
 app.post("/reset_alert", (req, res, next) => {
-  console.log("ra")
   vibrationAlertTriggered = false;
+});
+
+// Query twins which has scs model
+app.post("/query_twins", (req, res, next) => {
+  msal.getToken().then(token => {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    };
+    const url = ADT_URL + 'query?api-version=2020-10-31';
+
+    axios.post(url, {
+      "query": req.body["query"]
+    }, {
+      headers: headers,
+    }).then(axiosres => {
+      res.send(axiosres.data["value"]);
+    }).catch(err => {
+      res.status(418).send(err);
+    });
+  });
 });
 
 // Start updating data every 5 seconds

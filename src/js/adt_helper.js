@@ -22,6 +22,29 @@ function get_data(object) {
   })
 }
 
+function query_twins(query) {
+  return new Promise((resolve, reject) => {
+    var xhr = new XMLHttpRequest();
+
+    xhr.addEventListener("readystatechange", function () {
+      if (this.readyState === 4) {
+        resolve(this.responseText);
+      }
+    });
+
+    xhr.addEventListener("error", function (e) {
+      console.log(e);
+    });
+
+    const url = serverUrl + "query_twins";
+    xhr.open("POST", url);
+    xhr.setRequestHeader("Content-Type", "application/json")
+    xhr.send(JSON.stringify({
+      query: query
+    }));
+  })
+}
+
 function force_alert() {
   console.log("fa")
   var xhr = new XMLHttpRequest();
