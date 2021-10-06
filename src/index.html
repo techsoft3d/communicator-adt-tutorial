@@ -26,6 +26,7 @@
   <script type="text/javascript" src="js/adt_helper.js"></script>
   <script type="text/javascript" src="js/CustomMarkupItem.js"></script>
 
+
   <link rel="stylesheet" href="css/TreeControl.css" type="text/css" />
   <link rel="stylesheet" href="css/Toolbar.css" type="text/css" />
   <link rel="stylesheet" href="css/Common.css" type="text/css" />
@@ -44,6 +45,7 @@
     var currentSelection = null;
     var objects = null;
     var triggerButton = null;
+    var markups = {};
 
     $.getJSON("objects.json", null, (data) => {
       objects = data;
@@ -55,6 +57,13 @@
       m.setScaleComponent(object.scale, object.scale, object.scale);
       m = Communicator.Matrix.multiply(m, Communicator.Matrix.yAxisRotation(object.rotation));
       m.setTranslationComponent(object.x, object.y, object.z);
+
+      let s = "{\n";
+      m.m.forEach((element, index) => {
+        s += `\"${index + 1}\": ${element},\n`;
+      });
+      s += "}";
+      // console.log(`${object.adtId}: ${s}`);
 
       hwv.model.loadSubtreeFromScsFile(-2, object.scsFile, m).then((nodeId) => {
         object.nodeId = nodeId[0];
@@ -75,9 +84,81 @@
       })
     }
 
+    function createMarkupNew(twin, nodeId) {
+      console.log("enter create markup new");
+      hwv.model.getNodesBounding([nodeId]).then((box) => {
+        var markup = new CustomMarkupItem(hwv, -5, "",
+          new Communicator.Point3((box.max.x - box.min.x) / 2 + box.min.x, 2500, 0),
+          new Communicator.Point3(0, 1, 0),
+          0);
+        var uid = hwv.markupManager.registerMarkup(markup);
+        hwv.markupManager.refreshMarkup();
+        markups[twin["$dtId"]] = markup;
+        updateMarkup(twin);
+      })
+    }
+
+    function loadModelNew() {
+      query_twins("SELECT * FROM digitaltwins T WHERE IS_DEFINED(T.SCSFile) AND IS_DEFINED(Transformation)").then(result => {
+        let resultData = JSON.parse(result);
+        resultData.forEach(twin => {
+          console.log(twin);
+          let scsFile = './scs_models/' + twin["SCSFile"] + ".scs";
+          let array = [];
+          for (let i = 1; i <= 16; i += 1) {
+            array.push(twin["Transformation"][i]);
+          }
+          let transformationMatrix = Communicator.Matrix.createFromArray(array);
+          hwv.model.loadSubtreeFromScsFile(-2, scsFile, transformationMatrix).then((nodeIds) => {
+            createMarkupNew(twin, nodeIds[0]);
+          });
+        });
+      });
+    }
+
+    function pollNew() {
+      query_twins("SELECT * FROM digitaltwins T WHERE IS_DEFINED(T.SCSFile) AND IS_DEFINED(Transformation)").then(result => {
+        let adtData = JSON.parse(result);
+        adtData.forEach(twin => {
+          updateMarkup(twin);
+        });
+      });
+    }
+
+    function updateMarkup(twin) {
+      var text = twin["$dtId"] + "\n";
+      Object.keys(twin).forEach(key => {
+        if (key != 'StepId' && key[0] != '$' && key != "SCSFile" && key != "Transformation") {
+          if (typeof (twin[key]) === "number") {
+            // Round the number to 2 decimal places
+            let number = Number(twin[key]);
+            number = Math.round((number + Number.EPSILON) * 100) / 100;
+            text = text + key + ": " + number + "\n";
+          } else {
+            text = text + key + ": " + twin[key] + "\n";
+          }
+        }
+        if (key.includes("Alert")) {
+          if (twin[key] == true) {
+            // hwv.selectionManager.selectNode(object.nodeId);
+            triggerButton.textContent = "Reset";
+          } else {
+            hwv.selectionManager.clear();
+            triggerButton.textContent = "Trigger";
+          }
+        }
+      });
+
+      const markup = markups[twin["$dtId"]];
+      if (markup != null && markup._textBox != null) {
+        markup._textBox.setTextString(text);
+        hwv.markupManager.refreshMarkup();
+      }
+    }
+
     function poll(object) {
       get_data(object.adtId).then((result) => {
-        adtData = JSON.parse(result);
+        let adtData = JSON.parse(result);
 
         objects.forEach(object => {
           if (object.adtId == adtData.$dtId) {
@@ -117,8 +198,9 @@
 
     function sceneReadyFunc() {
       triggerButton = document.getElementById('trigger-button');
+      loadModelNew();
       objects.forEach(object => {
-        loadModel(object);
+        // loadModel(object);
         setInterval(function () {
           poll(object);
         }, 5000);
