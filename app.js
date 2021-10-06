@@ -57,7 +57,7 @@ app.post("/query_twins", (req, res, next) => {
       'Authorization': 'Bearer ' + token
     };
     const url = ADT_URL + 'query?api-version=2020-10-31';
-    
+
     axios.post(url, {
       "query": req.body["query"]
     }, {
@@ -71,6 +71,6 @@ app.post("/query_twins", (req, res, next) => {
 });
 
 // Start updating data every 5 seconds
-// setInterval(() => {
-//   update_data(vibrationAlertTriggered);
-// }, 5000);
+setInterval(() => {
+  update_data(vibrationAlertTriggered);
+}, 5000);

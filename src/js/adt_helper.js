@@ -36,7 +36,6 @@ function query_twins(query) {
       console.log(e);
     });
 
-    console.log(query);
     const url = serverUrl + "query_twins";
     xhr.open("POST", url);
     xhr.setRequestHeader("Content-Type", "application/json")
