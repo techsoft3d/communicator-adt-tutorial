@@ -106,3 +106,9 @@ dist
 # ADT Credentials
 adt.config.json
 adt.config.js
+
+# Azure Deployment
+.deployment
+
+# VS Code Workspace
+.vscode

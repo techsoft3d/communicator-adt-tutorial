@@ -1,26 +1,5 @@
-const serverUrl = "http://localhost:3000/";
-
-// param "object" is object.adtID
-function get_data(object) {
-  return new Promise((resolve, reject) => {
-    var xhr = new XMLHttpRequest();
-
-    xhr.addEventListener("readystatechange", function () {
-      if (this.readyState === 4) {
-        resolve(this.responseText);
-      }
-    });
-
-    xhr.addEventListener("error", function (e) {
-      console.log(e);
-    });
-
-    const url = serverUrl + "data/" + object;
-    xhr.open("GET", url);
-    xhr.setRequestHeader("Content-Type", "application/json")
-    xhr.send();
-  })
-}
+const serverUrl = `https://adt-communicator.azurewebsites.net/`;
+// const serverUrl = `http://localhost:3000/`;
 
 function query_twins(query) {
   return new Promise((resolve, reject) => {

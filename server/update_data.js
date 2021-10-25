@@ -5,7 +5,6 @@ const ADT_URL = 'https://' + adtConfig.hostname + '/';
 
 /// For updating data
 /// Updading Fanning, Grinding, and Molding
-
 function update_data(vibrationAlertTriggered) {
   update_step_data("fanning", vibrationAlertTriggered);
   update_step_data("grinding", vibrationAlertTriggered);
