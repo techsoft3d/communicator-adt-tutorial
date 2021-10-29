@@ -1,847 +1,917 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1;IE=edge">
-    <meta name="viewport" content="user-scalable=no">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1;IE=edge">
+  <meta name="viewport" content="user-scalable=no">
 
-    <title>Web Viewer Desktop</title>
-    <script type="text/javascript" src="js/jquery-3.5.1.min.js"></script>
-    <script type="text/javascript" src="js/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="js/jquery.ui.touch-punch.min.js"></script>
-    <script type="text/javascript" src="js/keymaster.min.js"></script>
-    <script type="text/javascript" src="js/iscroll.min.js"></script>
-    <script type="text/javascript" src="js/mobile-detect.min.js"></script>
+  <title>Web Viewer Desktop</title>
+  <script type="text/javascript" src="js/jquery-3.5.1.min.js"></script>
+  <script type="text/javascript" src="js/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="js/jquery.ui.touch-punch.min.js"></script>
+  <script type="text/javascript" src="js/keymaster.min.js"></script>
+  <script type="text/javascript" src="js/iscroll.min.js"></script>
+  <script type="text/javascript" src="js/mobile-detect.min.js"></script>
 
-    <script type="text/javascript" src="js/hoops_web_viewer.js?v=2fc2526" id="hwvScript"></script>
-    <script type="text/javascript" src="js/jquery.minicolors.min.js"></script>
-    <script type="text/javascript" src="js/web_viewer_ui.js?v=2fc2526" id="hwvUI"></script>
-    <script type="text/javascript" src="js/communicator_server_integration.js?v=2fc2526"></script>
-    <script type="text/javascript" src="js/sample.js?v=2fc2526"></script>
+  <script type="text/javascript" src="js/hoops_web_viewer.js?v=2fc2526" id="hwvScript"></script>
+  <script type="text/javascript" src="js/jquery.minicolors.min.js"></script>
+  <script type="text/javascript" src="js/web_viewer_ui.js?v=2fc2526" id="hwvUI"></script>
+  <script type="text/javascript" src="js/communicator_server_integration.js?v=2fc2526"></script>
+  <script type="text/javascript" src="js/sample.js?v=2fc2526"></script>
 
-    <script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.2.1/js/msal.js" integrity="sha384-9TV1245fz+BaI+VvCjMYL0YDMElLBwNS84v3mY57pXNOt6xcUYch2QLImaTahcOP" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="js/adt_helper.js"></script>
-    <script type="text/javascript" src="js/CustomMarkupItem.js"></script>    
+  <script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.2.1/js/msal.js"
+    integrity="sha384-9TV1245fz+BaI+VvCjMYL0YDMElLBwNS84v3mY57pXNOt6xcUYch2QLImaTahcOP"
+    crossorigin="anonymous"></script>
+  <script type="text/javascript" src="js/adt_helper.js"></script>
+  <script type="text/javascript" src="js/CustomMarkupItem.js"></script>
 
-    <link rel="stylesheet" href="css/TreeControl.css" type="text/css" />
-    <link rel="stylesheet" href="css/Toolbar.css" type="text/css" />
-    <link rel="stylesheet" href="css/Common.css" type="text/css" />
-    <link rel="stylesheet" href="css/Desktop.css" type="text/css" />
-    <link rel="stylesheet" href="css/Mobile.css" type="text/css" />
-    <link rel="stylesheet" href="css/NoteText.css" type="text/css" />
-    <link rel="stylesheet" href="css/jquery-ui.min.css" type="text/css" />
-    <link rel="stylesheet" href="css/PropertyWindow.css" type="text/css" />
-    <link rel="stylesheet" href="css/ViewerSettings.css" type="text/css" />
-    <link rel="stylesheet" href="css/jquery.minicolors.css" type="text/css" />
 
-    <script type="text/javascript" id="viewerStartup">
-        var hwv = null;
-        var ui = null;
-        var md = new MobileDetect(window.navigator.userAgent);
-        var currentSelection = null;
-        var objects = null;
+  <link rel="stylesheet" href="css/TreeControl.css" type="text/css" />
+  <link rel="stylesheet" href="css/Toolbar.css" type="text/css" />
+  <link rel="stylesheet" href="css/Common.css" type="text/css" />
+  <link rel="stylesheet" href="css/Desktop.css" type="text/css" />
+  <link rel="stylesheet" href="css/Mobile.css" type="text/css" />
+  <link rel="stylesheet" href="css/NoteText.css" type="text/css" />
+  <link rel="stylesheet" href="css/jquery-ui.min.css" type="text/css" />
+  <link rel="stylesheet" href="css/PropertyWindow.css" type="text/css" />
+  <link rel="stylesheet" href="css/ViewerSettings.css" type="text/css" />
+  <link rel="stylesheet" href="css/jquery.minicolors.css" type="text/css" />
 
-        $.getJSON("objects.json", null, (data) => {
-            objects = data;
+  <script type="text/javascript" id="viewerStartup">
+    var hwv = null;
+    var ui = null;
+    var md = new MobileDetect(window.navigator.userAgent);
+    var currentSelection = null;
+    var triggerButton = null;
+    var twins = {};
+
+    function createMarkup(twinData) {
+      let twin = twins[twinData["$dtId"]];
+      hwv.model.getNodesBounding([twin.nodeId]).then((box) => {
+        var markup = new CustomMarkupItem(hwv, -5, "",
+          new Communicator.Point3((box.max.x - box.min.x) / 2 + box.min.x, 2500, 0),
+          new Communicator.Point3(0, 1, 0),
+          0);
+        var uid = hwv.markupManager.registerMarkup(markup);
+        hwv.markupManager.refreshMarkup();
+        twin.markup = markup;
+        updateMarkup(twinData);
+      })
+    }
+
+    function loadModel() {
+      query_twins("SELECT * FROM digitaltwins T WHERE IS_DEFINED(T.SCSFile) AND IS_DEFINED(Transformation)").then(result => {
+        let resultData = JSON.parse(result);
+        resultData.forEach(twinData => {
+          console.log(twinData);
+          twins[twinData["$dtId"]] = {};
+          let scsFile = './scs_models/' + twinData["SCSFile"] + ".scs";
+          let array = [];
+          for (let i = 1; i <= 16; i += 1) {
+            array.push(twinData["Transformation"][i]);
+          }
+          let transformationMatrix = Communicator.Matrix.createFromArray(array);
+          hwv.model.loadSubtreeFromScsFile(-2, scsFile, transformationMatrix).then((nodeIds) => {
+            let twin = twins[twinData["$dtId"]];
+            twin.nodeId = nodeIds[0];
+            createMarkup(twinData);
+          });
         });
+      });
+    }
 
-        function loadModel( object ) { 
-            m = new Communicator.Matrix();
-            
-            m.setScaleComponent( object.scale, object.scale, object.scale );
-            m = Communicator.Matrix.multiply( m, Communicator.Matrix.yAxisRotation( object.rotation) );
-            m.setTranslationComponent(object.x, object.y, object.z);
+    function poll() {
+      query_twins("SELECT * FROM digitaltwins T WHERE IS_DEFINED(T.SCSFile) AND IS_DEFINED(Transformation)").then(result => {
+        let adtData = JSON.parse(result);
+        adtData.forEach(twin => {
+          updateMarkup(twin);
+        });
+      });
+    }
 
-            hwv.model.loadSubtreeFromScsFile(-2, object.scsFile, m).then( (nodeId) => {
-                object.nodeId = nodeId[0];
-                createMarkup(object);
-            });            
+    function updateMarkup(twinData) {
+      let twin = twins[twinData["$dtId"]];
+      var text = twinData["$dtId"] + "\n";
+      Object.keys(twinData).forEach(key => {
+        if (key != 'StepId' && key[0] != '$' && key != "SCSFile" && key != "Transformation") {
+          if (typeof (twinData[key]) === "number") {
+            // Round the number to 2 decimal places
+            let number = Number(twinData[key]);
+            number = Math.round((number + Number.EPSILON) * 100) / 100;
+            text = text + key + ": " + number + "\n";
+          } else {
+            text = text + key + ": " + twinData[key] + "\n";
+          }
         }
-
-        function createMarkup(object) {
-            hwv.model.getNodesBounding([object.nodeId]).then( (box) => {
-                    var markup = new CustomMarkupItem(hwv, -5, "",
-                            new Communicator.Point3((box.max.x-box.min.x)/2 + box.min.x, 2500, 0),
-                            new Communicator.Point3(0,1,0), 
-                            0);
-                    var uid = hwv.markupManager.registerMarkup(markup);
-                    hwv.markupManager.refreshMarkup(); 
-                    object.markup = markup;
-                })
+        if (key.includes("Alert")) {
+          if (twinData[key] == true) {
+            hwv.selectionManager.selectNode(twin.nodeId);
+            triggerButton.textContent = "Reset";
+          } else {
+            hwv.selectionManager.clear();
+            triggerButton.textContent = "Trigger";
+          }
         }
+      });
 
-        function poll(object) {
-            get_data(object.adtId).then( (result) => {
-                 
-                adtData = JSON.parse(result);
+      const markup = twin.markup;
+      if (markup != null && markup._textBox != null) {
+        markup._textBox.setTextString(text);
+        hwv.markupManager.refreshMarkup();
+      }
+    }
 
-                objects.forEach( object => {
-                    if( object.adtId == adtData.$dtId ) {
-                        var text = "";
-                        Object.keys(adtData).forEach(key => {
-                            if( key != 'StepId' && key[0] != '$') {
-                                text = text + key + ": " + adtData[key] + "\n";                    
-                            }
-                            if( key.includes("Alert") ) {
-                                if( adtData[key] == true ) {                                
-                                    hwv.selectionManager.selectNode( object.nodeId );
-                                } else {
-                                    hwv.selectionManager.clear();
-                                }
+    function sceneReadyFunc() {
+      triggerButton = document.getElementById('trigger-button');
+      loadModel();
+      setInterval(function () {
+        poll();
+      }, 5000);
 
-                            }
-                        });
+      hwv.view.setCamera(Communicator.Camera.create(new Communicator.Point3(4102, 2692, 11160),
+        new Communicator.Point3(6755, 867, 3970),
+        new Communicator.Point3(0, 1, 0),
+        7877,
+        7877,
+        0,
+        0.01
+      )
+      );
+    }
 
-                        if( object.markup != null && object.markup._textBox != null) {
-                            object.markup._textBox.setTextString(text); 
-                            hwv.markupManager.refreshMarkup();
-                        }
+    function selectionArrayFunc(events, removed) {
+      if (events[0] != undefined) {
+        currentSelection = events[0]._selection._nodeId;
+      }
+      else {
+        matrix = hwv.getModel().getNodeNetMatrix(currentSelection);
+      }
 
-                    }
-                })                
-            });
-        }
+    }
 
-        function sceneReadyFunc() {     
-            objects.forEach(object => {
-                loadModel( object ),
-                setInterval(function () { poll(object) }, 5000);
-            });
-            
-            hwv.view.setCamera( Communicator.Camera.create( new Communicator.Point3(4102, 2692, 11160), 
-                            new Communicator.Point3(6755, 867, 3970),
-                            new Communicator.Point3( 0, 1, 0), 
-                            7877,
-                            7877,
-                            0,
-                            0.01
-                            )
-            );        
-        }
+    window.onload = function () {
 
-        function selectionArrayFunc(events, removed) {
-            if(events[0] != undefined) {
-                currentSelection = events[0]._selection._nodeId;
-            }
-            else{
-                matrix = hwv.getModel().getNodeNetMatrix(currentSelection);
-                //console.log(matrix);
-            }
+      hwv = viewer = new Communicator.WebViewer({
+        empty: true,
+        containerId: "viewerContainer",
+        streamingMode: 1
+      });
 
-        }
+      var uiConfig = {
+        containerId: "content",
+        screenConfiguration: 0,
+        showModelBrowser: true,
+        showToolbar: true
+      }
 
-        window.onload = function () {
-            hwv = viewer = new Communicator.WebViewer({                
-                empty: true,
-                containerId: "viewerContainer",                
-                streamingMode: 1
-            });
+      ui = new Communicator.Ui.Desktop.DesktopUi(hwv, uiConfig);
 
-            var uiConfig = {
-                    containerId: "content",
-                    screenConfiguration:  0,
-                    showModelBrowser: true,
-                    showToolbar: true
-            }
+      viewer.start();
 
-            ui = new Communicator.Ui.Desktop.DesktopUi(hwv, uiConfig);
+      viewer.setCallbacks({
+        sceneReady: sceneReadyFunc,
+        selectionArray: selectionArrayFunc,
+      });
+    }
 
-            viewer.start();
+    window.onresize = function (event) {
+      // jQuery resizable triggers onresize, check that the call is not coming from a DOM element object
+      if (typeof event.target.getAttribute !== "function" && hwv != null) {
+        hwv.resizeCanvas();
+      }
+    };
 
-            viewer.setCallbacks({
-                sceneReady: sceneReadyFunc,
-                selectionArray: selectionArrayFunc,               
-            });
+    function onToggleTrigger() {
+      if (triggerButton.textContent == "Trigger") {
+        force_alert();
+      } else {
+        reset_alert();
+      }
+      triggerButton.disabled = true;
+      setTimeout(() => {
+        triggerButton.disabled = false;
+      }, 5000);
+    }
 
-            azureIoTLogin();
-        }    
-
-        window.onresize = function (event) {
-            // jQuery resizable triggers onresize, check that the call is not coming from a DOM element object
-            if (typeof event.target.getAttribute !== "function" && hwv != null) {
-                hwv.resizeCanvas();
-            }
-        };
-
-        function onToggleTrigger() {            
-            var elem = document.getElementById('trigger-button');
-            if( elem.textContent == "Trigger") {
-                force_alert();
-                elem.textContent = "Reset";
-            } else {
-                reset_alert();
-                elem.textContent = "Trigger";
-            }
-        }
-
-    </script>
+  </script>
 </head>
+
 <body>
-    <div id="content">
-        <div id="viewerContainer"></div>
-        <button id = "trigger-button" style ="position: absolute; top: 10px; right: 10px;" onclick="onToggleTrigger()">Trigger</button>
-        <!-- Toolbar HTML-->
-        <div id="toolBar">
-            <div class="toolbar-tools">
-                <div id="home-button" title="Reset Camera" data-operatorclass="toolbar-home" class="hoops-tool">
-                    <div class="tool-icon"></div>
-                </div>
-                <div id="tool_separator_1" class="tool-separator"></div>
-                <div id="view-button" title="Camera Menu" data-operatorclass="toolbar-camera" data-submenu="view-submenu" class="hoops-tool toolbar-menu">
-                    <div class="tool-icon"></div>
-                </div>
-                <div id="edgeface-button" title="Wireframe on Shaded" data-operatorclass="toolbar-wireframeshaded" data-submenu="edgeface-submenu" class="hoops-tool toolbar-menu">
-                    <div class="tool-icon"></div>
-                </div>
-                <div id="tool_separator_2" class="tool-separator"></div>
-                <div id="redline-button" title="Redline Note" data-operatorclass="toolbar-redline-note" data-submenu="redline-submenu" class="hoops-tool toolbar-radio">
-                    <div class="smarrow"></div>
-                    <div class="tool-icon"></div>
-                </div>
-                <div id="click-button" title="Select" data-operatorclass="toolbar-select" data-submenu="click-submenu" class="hoops-tool toolbar-radio active-tool">
-                    <div class="smarrow"></div>
-                    <div class="tool-icon"></div>
-                </div>
-                <div id="camera-button" title="Orbit Camera" data-operatorclass="toolbar-orbit" data-submenu="camera-submenu" class="hoops-tool toolbar-menu">
-                    <div class="tool-icon"></div>
-                </div>
-                <div id="tool_separator_3" class="tool-separator"></div>
-                <div id="explode-button" title="Explode Menu" data-operatorclass="toolbar-explode" data-submenu="explode-slider" class="hoops-tool toolbar-menu-toggle">
-                    <div class="tool-icon"></div>
-                </div>
-                <div id="cuttingplane-button" title="Cutting Plane Menu" data-operatorclass="toolbar-cuttingplane" data-submenu="cuttingplane-submenu" class="hoops-tool toolbar-menu-toggle">
-                    <div class="tool-icon"></div>
-                </div>
-                <div id="tool_separator_4" class="tool-separator"></div>
-                <div id="snapshot-button" title="Snapshot" data-operatorclass="toolbar-snapshot" class="hoops-tool">
-                    <div class="tool-icon"></div>
-                </div>
-                <div id="settings-button" title="Settings" data-operatorclass="toolbar-settings" class="hoops-tool">
-                    <div class="tool-icon"></div>
-                </div>
-            </div>
-            <div id="submenus">
-                <div id="redline-submenu" data-button="redline-button" class="toolbar-submenu submenus">
-                    <table>
-                        <tr>
-                            <td>
-                                <div id="redline-circle-button" title="Redline Circle" data-operatorclass="toolbar-redline-circle" class="submenu-icon"></div>
-                            </td>
-                            <td>
-                                <div id="redline-rectangle-button" title="Redline Rectangle" data-operatorclass="toolbar-redline-rectangle" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div id="redline-note" title="Redline Note" data-operatorclass="toolbar-redline-note" class="submenu-icon"></div>
-                            </td>
-                            <td>
-                                <div id="redline-freehand" title="Redline Freehand" data-operatorclass="toolbar-redline-freehand" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                <div id="camera-submenu" data-button="camera-button" class="toolbar-submenu submenus">
-                    <table>
-                        <tr>
-                            <td>
-                                <div id="operator-camera-walk" title="Walk" data-operatorclass="toolbar-walk" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div id="operator-camera-turntable" title="Turntable" data-operatorclass="toolbar-turntable" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div id="operator-camera-orbit" title="Orbit Camera" data-operatorclass="toolbar-orbit" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                <div id="edgeface-submenu" data-button="edgeface-button" class="toolbar-submenu submenus">
-                    <table>
-                        <tr>
-                            <td>
-                                <div id="viewport-wireframe-on-shaded" title="Shaded With Lines" data-operatorclass="toolbar-wireframeshaded" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div id="viewport-shaded" title="Shaded" data-operatorclass="toolbar-shaded" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div title="Hidden Line" data-operatorclass="toolbar-hidden-line" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div id="viewport-wireframe" title="Wireframe" data-operatorclass="toolbar-wireframe" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div id="viewport-xray" title="XRay" data-operatorclass="toolbar-xray" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                <div id="view-submenu" class="toolbar-submenu submenus">
-                    <table>
-                        <tr>
-                            <td>
-                                <div id="view-face" title="Orient Camera To Selected Face" data-operatorclass="toolbar-face" class="submenu-icon disabled"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div id="view-iso" title="Iso View" data-operatorclass="toolbar-iso" class="submenu-icon"></div>
-                            </td>
-                            <td>
-                                <div id="view-ortho" title="Orthographic Projection" data-operatorclass="toolbar-ortho" class="submenu-icon"></div>
-                            </td>
-                            <td>
-                                <div id="view-persp" title="Perspective Projection" data-operatorclass="toolbar-persp" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div id="view-left" title="Left View" data-operatorclass="toolbar-left" class="submenu-icon"></div>
-                            </td>
-                            <td>
-                                <div id="view-right" title="Right View" data-operatorclass="toolbar-right" class="submenu-icon"></div>
-                            </td>
-                            <td>
-                                <div id="view-bottom" title="Bottom View" data-operatorclass="toolbar-bottom" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div id="view-front" title="Front View" data-operatorclass="toolbar-front" class="submenu-icon"></div>
-                            </td>
-                            <td>
-                                <div id="view-back" title="Back View" data-operatorclass="toolbar-back" class="submenu-icon"></div>
-                            </td>
-                            <td>
-                                <div id="view-top" title="Top View" data-operatorclass="toolbar-top" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                <div id="click-submenu" data-button="click-button" class="toolbar-submenu submenus">
-                    <table>
-                        <tr>
-                            <td>
-                                <div id="note-button" title="Create Note-Pin" data-operatorclass="toolbar-note" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div id="measure-angle-between-faces" title="Measure Angle Between Faces" data-operatorclass="toolbar-measure-angle" class="submenu-icon"></div>
-                            </td>
-                            <td>
-                                <div id="measure-distance-between-faces" title="Measure Distance Between Faces" data-operatorclass="toolbar-measure-distance" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div id="measure-edges" title="Measure Edges" data-operatorclass="toolbar-measure-edge" class="submenu-icon"></div>
-                            </td>
-                            <td>
-                                <div id="measure-point-to-point" title="Measure Point to Point" data-operatorclass="toolbar-measure-point" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div id="select-parts" title="Select Parts" data-operatorclass="toolbar-select" class="submenu-icon"></div>
-                            </td>
-                            <td>
-                                <div id="area-select" title="Area Select" data-operatorclass="toolbar-area-select" class="submenu-icon"></div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                <div id="explode-slider" class="toolbar-submenu slider-menu submenus">
-                    <div id="explosion-slider" style="height:90px;" class="toolbar-slider"></div>
-                </div>
-                <div id="cuttingplane-submenu" class="toolbar-submenu cutting-plane submenus no-modal">
-                    <table>
-                        <tr>
-                            <td>
-                                <div id="cuttingplane-face" title="Create Cutting Plane On Selected Face" data-plane="face" data-operatorclass="toolbar-cuttingplane-face" class="toolbar-cp-plane submenu-icon disabled"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div id="cuttingplane-x" title="Cutting Plane X" data-plane="x" data-operatorclass="toolbar-cuttingplane-x" class="toolbar-cp-plane submenu-icon"></div>
-                            </td>
-                            <td>
-                                <div id="cuttingplane-section" title="Cutting Plane Visibility Toggle" data-plane="section" data-operatorclass="toolbar-cuttingplane-section" class="toolbar-cp-plane submenu-icon disabled"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div id="cuttingplane-y" title="Cutting Plane Y" data-plane="y" data-operatorclass="toolbar-cuttingplane-y" class="toolbar-cp-plane submenu-icon"></div>
-                            </td>
-                            <td>
-                                <div id="cuttingplane-toggle" title="Cutting Plane Section Toggle" data-plane="toggle" data-operatorclass="toolbar-cuttingplane-toggle" class="toolbar-cp-plane submenu-icon disabled"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div id="cuttingplane-z" title="Cutting Plane Z" data-plane="z" data-operatorclass="toolbar-cuttingplane-z" class="toolbar-cp-plane submenu-icon"></div>
-                            </td>
-                            <td>
-                                <div id="cuttingplane-reset" title="Cutting Plane Reset" data-plane="reset" data-operatorclass="toolbar-cuttingplane-reset" class="toolbar-cp-plane submenu-icon disabled"></div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
+  <div id="content">
+    <div id="viewerContainer"></div>
+    <button id="trigger-button" style="position: absolute; top: 10px; right: 10px;"
+      onclick="onToggleTrigger()">Trigger</button>
+    <!-- Toolbar HTML-->
+    <div id="toolBar">
+      <div class="toolbar-tools">
+        <div id="home-button" title="Reset Camera" data-operatorclass="toolbar-home" class="hoops-tool">
+          <div class="tool-icon"></div>
         </div>
-
-        <div id="viewer-settings-dialog-container">
-            <!-- Viewer Settings Window -->
-            <div id="viewer-settings-dialog" class="hoops-ui-window">
-
-                <!-- Header -->
-                <div class="hoops-ui-window-header">
-                    <span class="tab selected" id="settings-tab-label-general">General</span>
-                    <span class="tab" id="settings-tab-label-walk">Walk</span>
-                    <span class="tab" id="settings-tab-label-drawing">Drawing</span>
-                    <span class="tab" id="settings-tab-label-floorplan">Floorplan</span>
-                </div>
-
-                <!-- Floorplan tab-->
-                <div class="hoops-ui-window-body" id="settings-tab-floorplan">
-                    <div class="settings-group-header">Floorplan</div>
-                    <div class="settings-group settings-group-general">
-                        <div class="settings-block">
-                            <span id="settings-floorplan-active-text">Active:</span>
-                            <input type="checkbox" id="settings-floorplan-active" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <span id="settings-floorplan-track-camera-text">Track Camera:</span>
-                            <input type="checkbox" id="settings-floorplan-track-camera" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <span id="settings-floorplan-orientation-text">Orientation:</span>
-                            <select id="settings-floorplan-orientation" class="right-align">
-                                <option value="0">North Up</option>
-                                <option value="1">Avatar Up</option>
-                            </select>
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <span id="settings-floorplan-auto-activate-text">Auto Activation:</span>
-                            <select id="settings-floorplan-auto-activate" class="right-align">
-                                <option value="0">Bim</option>
-                                <option value="1">Bim + Walk</option>
-                                <option value="2">Never</option>
-                            </select>
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <span id="settings-floorplan-feet-per-pixel-style">
-                                <span id="settings-floorplan-feet-per-pixel-text">Overlay Feet per Pixel:</span>
-                                <input type="number" min="0" step=".1" id="settings-floorplan-feet-per-pixel" class="right-align" />
-                            </span>
-                        </div>
-                        <div class="settings-block">
-                            <span id="settings-floorplan-zoom-style">
-                                <span id="settings-floorplan-zoom-text">Overlay Zoom Level:</span>
-                                <input type="number" min="0" max="10" step=".1" id="settings-floorplan-zoom" class="right-align" />
-                            </span>
-                        </div>
-                        <div class="settings-block">
-                            <span id="settings-floorplan-background-opacity-text">Overlay Background Opacity:</span>
-                            <input type="number" min="0" max="1" step=".01" id="settings-floorplan-background-opacity" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <span id="settings-floorplan-border-opacity-text">Overlay Border Opacity:</span>
-                            <input type="number" min="0" max="1" step=".01" id="settings-floorplan-border-opacity" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <span id="settings-floorplan-avatar-opacity-text">Avatar Opacity:</span>
-                            <input type="number" min="0" max="1" step=".01" id="settings-floorplan-avatar-opacity" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <div>Floorplan Colors:</div>
-                            <div>
-                                <input type="text" id="settings-floorplan-background-color" class="color-picker" data-position="bottom left" />
-                                <label>Background</label>
-                            </div>
-                            <div>
-                                <input type="text" id="settings-floorplan-border-color" class="color-picker" data-position="bottom left" />
-                                <label>Border</label>
-                            </div>
-                            <div>
-                                <input type="text" id="settings-floorplan-avatar-color" class="color-picker" data-position="bottom left" />
-                                <label>Avatar</label>
-                            </div>
-                            <div>
-                                <input type="text" id="settings-floorplan-avatar-outline-color" class="color-picker" data-position="bottom left" />
-                                <label>Avatar Outline</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Drawing tab -->
-                <div class="hoops-ui-window-body" id="settings-tab-drawing">
-                    <div class="settings-group-header">Drawing</div>
-                    <div class="settings-group settings-group-general">
-                        <div class="settings-block">
-                            <div>Drawing Colors:</div>
-                            <div>
-                                <input type="text" id="settings-drawing-background" class="color-picker" data-position="bottom left" />
-                                <label>Background</label>
-                            </div>
-                            <div>
-                                <input type="text" id="settings-drawing-sheet" class="color-picker" data-position="bottom left" />
-                                <label>Sheet</label>
-                            </div>
-                            <div>
-                                <input type="text" id="settings-drawing-sheet-shadow" class="color-picker" data-position="bottom left" />
-                                <label>Sheet Shadow</label>
-                            </div>
-                            <div>
-                                <input type="checkbox" id="settings-drawing-background-enabled" />
-                                <label>Show Sheet Background</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Walk tab -->
-                <div class="hoops-ui-window-body" id="settings-tab-walk">
-                    <div class="settings-group-header">Walk Mode</div>
-                    <div class="settings-group settings-group-general">
-                        <div class="settings-block">
-                            <label>Walk Mode:</label>
-                            <select id="settings-walk-mode" class="right-align">
-                                <option value="0">Mouse</option>
-                                <option value="1">Keyboard</option>
-                            </select>
-                            <span class="clear-both"></span>
-                        </div>
-
-                        <div class="settings-block" id="walk-navigation-keys">
-                            <div id="walk-navigation-text" class="center-align bold">Navigation Keys</div>
-                            <div>
-                                <span id="walk-key-forward">W</span> /
-                                <span id="walk-key-left">A</span> /
-                                <span id="walk-key-backward">S</span> /
-                                <span id="walk-key-right">D</span>
-                                <span class="right-align">Move</span>
-                            </div>
-                            <div>
-                                <span id="walk-key-rotate-left">Q</span> /
-                                <span id="walk-key-rotate-right">E</span>
-                                <span class="right-align">rotate</span>
-                            </div>
-                            <div>
-                                <span id="walk-key-up">X</span> /
-                                <span id="walk-key-down">C</span>
-                                <span class="right-align">Up / Down</span>
-                            </div>
-                            <div>
-                                <span id="walk-key-tilt-up">R</span> /
-                                <span id="walk-key-tilt-down">F</span>
-                                <span id="move-keys" class="right-align">Tilt</span>
-                            </div>
-                            <div>
-                                <span id="walk-key-toggle-collision">V</span>
-                                <span class="right-align">Toggle Collision Detection</span>
-                            </div>
-
-                        </div>
-
-                        <div class="settings-block">
-                            <span id="walk-rotation-text">Rotation (Deg/s):</span>
-                            <input type="number" min="0" id="settings-walk-rotation" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-
-                        <div class="settings-block">
-                            <span id="walk-speed-text">Walk Speed (<span id="walk-speed-units">m</span>/s):</span>
-                            <input type="number" min="0" id="settings-walk-speed" step=".1" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <span id="walk-elevation-text">Elevation Speed (<span id="elevation-speed-units">m</span>/s):</span>
-                            <input type="number" min="0" id="settings-walk-elevation" step=".1" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <span id="walk-view-angle-text">Field of View (Deg):</span>
-                            <input type="number" min="30" max="150" id="settings-walk-view-angle" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <span id="walk-mouse-look-text">Enable Mouse Look:</span>
-                            <input type="checkbox" id="settings-mouse-look-enabled" />
-
-                            <span id="settings-mouse-look-style" class="grayed-out right-align">
-                                <label>Speed: </label>
-                                <input id="settings-mouse-look-speed" type="number" />
-                            </span>
-                        </div>
-                        <div class="settings-block">
-                            <span id="walk-bim-mode-text">Enable Collision Detection:</span>
-                            <input type="checkbox" id="settings-bim-mode-enabled" />
-                            <span class="clear-both"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!--General tab-->
-                <div class="hoops-ui-window-body selected" id="settings-tab-general">
-                    <!-- general -->
-                    <div class="settings-group-header">General</div>
-                    <div class="settings-group settings-group-general">
-                        <div class="settings-block">
-                            <label>Projection Mode:</label>
-                            <select id="settings-projection-mode" class="right-align">
-                                <option value="0">Orthographic</option>
-                                <option value="1">Perspective</option>
-                            </select>
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <span class="framerate-text">Framerate (fps):</span>
-                            <input type="number" min="0" id="settings-framerate" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <span>Hidden Line Opacity (0-1): </span>
-                            <input id="settings-hidden-line-opacity" class="right-align" type="number" min="0" max="1" step=".1" />
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <label for="settings-show-backfaces">Show Backfaces:</label>
-                            <input type="checkbox" id="settings-show-backfaces" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <label for="settings-show-capping-geometry">Show Capping Geometry:</label>
-                            <input type="checkbox" id="settings-show-capping-geometry" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <span>Enable Face / Line Selection: </span>
-                            <input type="checkbox" id="settings-enable-face-line-selection" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <span>Selection Honors Scene Visibility:</span>
-                            <input type="checkbox" id="settings-select-scene-invisible" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <span>Rotate Around Camera Center:</span>
-                            <input type="checkbox" id="settings-orbit-mode" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                    </div>
-
-                    <!-- effects -->
-                    <div class="settings-group-header">Effects</div>
-                    <div class="settings-group settings-group-general">
-
-                        <div class="settings-block">
-                            <span>Enable Ambient Occlusion:</span>
-                            <input type="checkbox" id="settings-ambient-occlusion" />
-                            <input id="settings-ambient-occlusion-radius" type="number" min="0" max="10" step=".01" class="right-align" />
-                            <div class="right-align">Radius: </div>
-                            <span class="clear-both"></span>
-                        </div>
-
-                        <div class="settings-block">
-                            <span>Enable Anti-Aliasing:</span>
-                            <input type="checkbox" id="settings-anti-aliasing" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-
-                        <div class="settings-block">
-                            <div>
-                                <span>Enable Bloom:</span>
-                                <input type="checkbox" id="settings-bloom-enabled" class="right-align" />
-                            </div>
-                            <span id="settings-bloom-style" class="grayed-out">
-                                <label>Intensity Scale:</label>
-                                <input id="settings-bloom-intensity" type="number" min="0" step=".1" class="right-align" disabled />
-                                <span class="clear-both"></span>
-                                <label>Threshold:</label>
-                                <input type="range" id="settings-bloom-threshold" min="0" max="1" step="0.1" class="right-align" disabled />
-                            </span>
-                        </div>
-
-                        <div class="settings-block">
-                            <div>
-                                <span>Silhouette Edges:</span>
-                                <input type="checkbox" id="settings-silhouette-enabled" class="right-align" />
-                            </div>
-                        </div>
-
-                        <div class="settings-block">
-                            <div>
-                                <span>Reflection Planes:</span>
-                                <input type="checkbox" id="settings-reflection-enabled" class="right-align" />
-                            </div>
-                        </div>
-
-                        <div class="settings-block">
-                            <div>
-                                <span>Enable Shadows:</span>
-                                <input type="checkbox" id="settings-shadow-enabled" class="right-align" />
-                            </div>
-                            <span id="settings-shadow-style" class="grayed-out">
-                                <span>Interactive:</span>
-                                <input type="checkbox" id="settings-shadow-interactive" class="right-align" disabled />
-                                <span class="clear-both"></span>
-
-                                <label>Blur Samples:</label>
-                                <input type="range" id="settings-shadow-blur-samples" min="0" max="20" step="1" class="right-align" disabled />
-                            </span>
-                        </div>
-
-                    </div>
-
-                    <!-- axis -->
-                    <div class="settings-group-header">Axis</div>
-                    <div class="settings-group settings-group-general">
-                        <div class="settings-block">
-                            <span>Show Axis Triad:</span>
-                            <input type="checkbox" id="settings-axis-triad" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                        <div class="settings-block">
-                            <span>Show Nav Cube:</span>
-                            <input type="checkbox" id="settings-nav-cube" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                    </div>
-
-                    <!-- point cloud -->
-                    <div class="settings-group-header">Point Cloud</div>
-                    <div class="settings-group settings-group-general">
-                        <div class="settings-block">
-                            <span>Enable Splats:</span>
-                            <input type="checkbox" id="settings-splat-rendering-enabled" />
-
-                            <span id="settings-splat-enabled-style" class="grayed-out right-align">
-                                <label>Size: </label>
-                                <input id="settings-splat-rendering-size" step=".01" type="number" />
-
-                                <label>Mode:</label>
-                                <select id="settings-splat-rendering-point-size-unit">
-                                    <option value="0">ScreenPixels</option>
-                                    <option value="1">CSSPixels</option>
-                                    <option value="2">World</option>
-                                    <option value="3">ScreenWidth</option>
-                                    <option value="4">ScreenHeight</option>
-                                    <option value="5">BoundingDiagonal</option>
-                                </select>
-                            </span>
-                        </div>
-                        <div class="settings-block">
-                            <span>Enable Eye-Dome Lighting:</span>
-                            <input type="checkbox" id="settings-eye-dome-lighting-enabled" class="right-align" />
-                            <span class="clear-both"></span>
-                        </div>
-                    </div>
-
-                    <!--color-->
-                    <div class="settings-group-header">Color</div>
-                    <div class="settings-group settings-group-colors">
-                        <div class="settings-block">
-                            <div>Background Color:</div>
-                            <div>
-                                <input type="text" id="settings-background-top" class="color-picker" data-position="top left" />
-                                <label>Top</label>
-                            </div>
-                            <div>
-                                <input type="text" id="settings-background-bottom" class="color-picker" data-position="top left" />
-                                <label>Bottom</label>
-                            </div>
-                        </div>
-                        <div class="settings-block">
-                            <div>Capping Geometry:</div>
-                            <div>
-                                <input type="text" id="settings-capping-face-color" class="color-picker" data-position="top left" />
-                                <label>Face</label>
-                            </div>
-                            <div>
-                                <input type="text" id="settings-capping-line-color" class="color-picker" data-position="top left" />
-                                <label>Line</label>
-                            </div>
-                        </div>
-                        <div class="settings-block">
-                            <div>Selection Color:</div>
-                            <input type="text" id="settings-selection-color-body" class="color-picker" data-position="top left" />
-                            <label>Body</label>
-                            <div>
-                                <span id="settings-selection-color-face-line-style">
-                                    <input type="text" id="settings-selection-color-face-line" class="color-picker" data-position="top left" />
-                                    <label>Faces and Lines</label>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="settings-block">
-                            <input type="text" id="settings-measurement-color" class="color-picker" data-position="top left" />
-                            <label>Measurement Color</label>
-                        </div>
-                        <div class="settings-block">
-                            <span id="settings-pmi-color-style" class="grayed-out">
-                                <input type="text" id="settings-pmi-color" class="color-picker" data-position="top left" disabled />
-                                <label>PMI Override Color</label>
-                            </span>
-                            <input type="checkbox" id="settings-pmi-enabled" />
-                            <label>Enable</label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Footer -->
-                <div>
-                    <div class="hoops-ui-window-footer">
-                        <div class="version">
-                            Viewer Version:
-                            <span id="settings-viewer-version"></span>, Format Version:
-                            <span id="settings-format-version"></span>
-                        </div>
-                        <div class="hoops-ui-footer-buttons">
-                            <button id="viewer-settings-ok-button">Ok</button>
-                            <button id="viewer-settings-cancel-button">Cancel</button>
-                            <button id="viewer-settings-apply-button">Apply</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div id="tool_separator_1" class="tool-separator"></div>
+        <div id="view-button" title="Camera Menu" data-operatorclass="toolbar-camera" data-submenu="view-submenu"
+          class="hoops-tool toolbar-menu">
+          <div class="tool-icon"></div>
         </div>
+        <div id="edgeface-button" title="Wireframe on Shaded" data-operatorclass="toolbar-wireframeshaded"
+          data-submenu="edgeface-submenu" class="hoops-tool toolbar-menu">
+          <div class="tool-icon"></div>
+        </div>
+        <div id="tool_separator_2" class="tool-separator"></div>
+        <div id="redline-button" title="Redline Note" data-operatorclass="toolbar-redline-note"
+          data-submenu="redline-submenu" class="hoops-tool toolbar-radio">
+          <div class="smarrow"></div>
+          <div class="tool-icon"></div>
+        </div>
+        <div id="click-button" title="Select" data-operatorclass="toolbar-select" data-submenu="click-submenu"
+          class="hoops-tool toolbar-radio active-tool">
+          <div class="smarrow"></div>
+          <div class="tool-icon"></div>
+        </div>
+        <div id="camera-button" title="Orbit Camera" data-operatorclass="toolbar-orbit" data-submenu="camera-submenu"
+          class="hoops-tool toolbar-menu">
+          <div class="tool-icon"></div>
+        </div>
+        <div id="tool_separator_3" class="tool-separator"></div>
+        <div id="explode-button" title="Explode Menu" data-operatorclass="toolbar-explode" data-submenu="explode-slider"
+          class="hoops-tool toolbar-menu-toggle">
+          <div class="tool-icon"></div>
+        </div>
+        <div id="cuttingplane-button" title="Cutting Plane Menu" data-operatorclass="toolbar-cuttingplane"
+          data-submenu="cuttingplane-submenu" class="hoops-tool toolbar-menu-toggle">
+          <div class="tool-icon"></div>
+        </div>
+        <div id="tool_separator_4" class="tool-separator"></div>
+        <div id="snapshot-button" title="Snapshot" data-operatorclass="toolbar-snapshot" class="hoops-tool">
+          <div class="tool-icon"></div>
+        </div>
+        <div id="settings-button" title="Settings" data-operatorclass="toolbar-settings" class="hoops-tool">
+          <div class="tool-icon"></div>
+        </div>
+      </div>
+      <div id="submenus">
+        <div id="redline-submenu" data-button="redline-button" class="toolbar-submenu submenus">
+          <table>
+            <tr>
+              <td>
+                <div id="redline-circle-button" title="Redline Circle" data-operatorclass="toolbar-redline-circle"
+                  class="submenu-icon"></div>
+              </td>
+              <td>
+                <div id="redline-rectangle-button" title="Redline Rectangle"
+                  data-operatorclass="toolbar-redline-rectangle" class="submenu-icon"></div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="redline-note" title="Redline Note" data-operatorclass="toolbar-redline-note"
+                  class="submenu-icon"></div>
+              </td>
+              <td>
+                <div id="redline-freehand" title="Redline Freehand" data-operatorclass="toolbar-redline-freehand"
+                  class="submenu-icon"></div>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div id="camera-submenu" data-button="camera-button" class="toolbar-submenu submenus">
+          <table>
+            <tr>
+              <td>
+                <div id="operator-camera-walk" title="Walk" data-operatorclass="toolbar-walk" class="submenu-icon">
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="operator-camera-turntable" title="Turntable" data-operatorclass="toolbar-turntable"
+                  class="submenu-icon"></div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="operator-camera-orbit" title="Orbit Camera" data-operatorclass="toolbar-orbit"
+                  class="submenu-icon"></div>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div id="edgeface-submenu" data-button="edgeface-button" class="toolbar-submenu submenus">
+          <table>
+            <tr>
+              <td>
+                <div id="viewport-wireframe-on-shaded" title="Shaded With Lines"
+                  data-operatorclass="toolbar-wireframeshaded" class="submenu-icon"></div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="viewport-shaded" title="Shaded" data-operatorclass="toolbar-shaded" class="submenu-icon"></div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div title="Hidden Line" data-operatorclass="toolbar-hidden-line" class="submenu-icon"></div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="viewport-wireframe" title="Wireframe" data-operatorclass="toolbar-wireframe"
+                  class="submenu-icon"></div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="viewport-xray" title="XRay" data-operatorclass="toolbar-xray" class="submenu-icon"></div>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div id="view-submenu" class="toolbar-submenu submenus">
+          <table>
+            <tr>
+              <td>
+                <div id="view-face" title="Orient Camera To Selected Face" data-operatorclass="toolbar-face"
+                  class="submenu-icon disabled"></div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="view-iso" title="Iso View" data-operatorclass="toolbar-iso" class="submenu-icon"></div>
+              </td>
+              <td>
+                <div id="view-ortho" title="Orthographic Projection" data-operatorclass="toolbar-ortho"
+                  class="submenu-icon"></div>
+              </td>
+              <td>
+                <div id="view-persp" title="Perspective Projection" data-operatorclass="toolbar-persp"
+                  class="submenu-icon"></div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="view-left" title="Left View" data-operatorclass="toolbar-left" class="submenu-icon"></div>
+              </td>
+              <td>
+                <div id="view-right" title="Right View" data-operatorclass="toolbar-right" class="submenu-icon"></div>
+              </td>
+              <td>
+                <div id="view-bottom" title="Bottom View" data-operatorclass="toolbar-bottom" class="submenu-icon">
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="view-front" title="Front View" data-operatorclass="toolbar-front" class="submenu-icon"></div>
+              </td>
+              <td>
+                <div id="view-back" title="Back View" data-operatorclass="toolbar-back" class="submenu-icon"></div>
+              </td>
+              <td>
+                <div id="view-top" title="Top View" data-operatorclass="toolbar-top" class="submenu-icon"></div>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div id="click-submenu" data-button="click-button" class="toolbar-submenu submenus">
+          <table>
+            <tr>
+              <td>
+                <div id="note-button" title="Create Note-Pin" data-operatorclass="toolbar-note" class="submenu-icon">
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="measure-angle-between-faces" title="Measure Angle Between Faces"
+                  data-operatorclass="toolbar-measure-angle" class="submenu-icon"></div>
+              </td>
+              <td>
+                <div id="measure-distance-between-faces" title="Measure Distance Between Faces"
+                  data-operatorclass="toolbar-measure-distance" class="submenu-icon"></div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="measure-edges" title="Measure Edges" data-operatorclass="toolbar-measure-edge"
+                  class="submenu-icon"></div>
+              </td>
+              <td>
+                <div id="measure-point-to-point" title="Measure Point to Point"
+                  data-operatorclass="toolbar-measure-point" class="submenu-icon"></div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="select-parts" title="Select Parts" data-operatorclass="toolbar-select" class="submenu-icon">
+                </div>
+              </td>
+              <td>
+                <div id="area-select" title="Area Select" data-operatorclass="toolbar-area-select" class="submenu-icon">
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div id="explode-slider" class="toolbar-submenu slider-menu submenus">
+          <div id="explosion-slider" style="height:90px;" class="toolbar-slider"></div>
+        </div>
+        <div id="cuttingplane-submenu" class="toolbar-submenu cutting-plane submenus no-modal">
+          <table>
+            <tr>
+              <td>
+                <div id="cuttingplane-face" title="Create Cutting Plane On Selected Face" data-plane="face"
+                  data-operatorclass="toolbar-cuttingplane-face" class="toolbar-cp-plane submenu-icon disabled"></div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="cuttingplane-x" title="Cutting Plane X" data-plane="x"
+                  data-operatorclass="toolbar-cuttingplane-x" class="toolbar-cp-plane submenu-icon"></div>
+              </td>
+              <td>
+                <div id="cuttingplane-section" title="Cutting Plane Visibility Toggle" data-plane="section"
+                  data-operatorclass="toolbar-cuttingplane-section" class="toolbar-cp-plane submenu-icon disabled">
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="cuttingplane-y" title="Cutting Plane Y" data-plane="y"
+                  data-operatorclass="toolbar-cuttingplane-y" class="toolbar-cp-plane submenu-icon"></div>
+              </td>
+              <td>
+                <div id="cuttingplane-toggle" title="Cutting Plane Section Toggle" data-plane="toggle"
+                  data-operatorclass="toolbar-cuttingplane-toggle" class="toolbar-cp-plane submenu-icon disabled"></div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="cuttingplane-z" title="Cutting Plane Z" data-plane="z"
+                  data-operatorclass="toolbar-cuttingplane-z" class="toolbar-cp-plane submenu-icon"></div>
+              </td>
+              <td>
+                <div id="cuttingplane-reset" title="Cutting Plane Reset" data-plane="reset"
+                  data-operatorclass="toolbar-cuttingplane-reset" class="toolbar-cp-plane submenu-icon disabled"></div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
     </div>
 
-    <div id="snapshot-dialog" class="hoops-ui-window">
-        <div class="hoops-ui-window-header">Snapshot</div>
-        <div class="hoops-ui-window-body">
-            <img id="snapshot-dialog-image" class="snapshot-image" alt="Snapshot" />
-            <div class="snapshot-text">Right Click to Save image</div>
+    <div id="viewer-settings-dialog-container">
+      <!-- Viewer Settings Window -->
+      <div id="viewer-settings-dialog" class="hoops-ui-window">
+
+        <!-- Header -->
+        <div class="hoops-ui-window-header">
+          <span class="tab selected" id="settings-tab-label-general">General</span>
+          <span class="tab" id="settings-tab-label-walk">Walk</span>
+          <span class="tab" id="settings-tab-label-drawing">Drawing</span>
+          <span class="tab" id="settings-tab-label-floorplan">Floorplan</span>
         </div>
-        <div class="hoops-ui-window-footer">
+
+        <!-- Floorplan tab-->
+        <div class="hoops-ui-window-body" id="settings-tab-floorplan">
+          <div class="settings-group-header">Floorplan</div>
+          <div class="settings-group settings-group-general">
+            <div class="settings-block">
+              <span id="settings-floorplan-active-text">Active:</span>
+              <input type="checkbox" id="settings-floorplan-active" class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <span id="settings-floorplan-track-camera-text">Track Camera:</span>
+              <input type="checkbox" id="settings-floorplan-track-camera" class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <span id="settings-floorplan-orientation-text">Orientation:</span>
+              <select id="settings-floorplan-orientation" class="right-align">
+                <option value="0">North Up</option>
+                <option value="1">Avatar Up</option>
+              </select>
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <span id="settings-floorplan-auto-activate-text">Auto Activation:</span>
+              <select id="settings-floorplan-auto-activate" class="right-align">
+                <option value="0">Bim</option>
+                <option value="1">Bim + Walk</option>
+                <option value="2">Never</option>
+              </select>
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <span id="settings-floorplan-feet-per-pixel-style">
+                <span id="settings-floorplan-feet-per-pixel-text">Overlay Feet per Pixel:</span>
+                <input type="number" min="0" step=".1" id="settings-floorplan-feet-per-pixel" class="right-align" />
+              </span>
+            </div>
+            <div class="settings-block">
+              <span id="settings-floorplan-zoom-style">
+                <span id="settings-floorplan-zoom-text">Overlay Zoom Level:</span>
+                <input type="number" min="0" max="10" step=".1" id="settings-floorplan-zoom" class="right-align" />
+              </span>
+            </div>
+            <div class="settings-block">
+              <span id="settings-floorplan-background-opacity-text">Overlay Background Opacity:</span>
+              <input type="number" min="0" max="1" step=".01" id="settings-floorplan-background-opacity"
+                class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <span id="settings-floorplan-border-opacity-text">Overlay Border Opacity:</span>
+              <input type="number" min="0" max="1" step=".01" id="settings-floorplan-border-opacity"
+                class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <span id="settings-floorplan-avatar-opacity-text">Avatar Opacity:</span>
+              <input type="number" min="0" max="1" step=".01" id="settings-floorplan-avatar-opacity"
+                class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <div>Floorplan Colors:</div>
+              <div>
+                <input type="text" id="settings-floorplan-background-color" class="color-picker"
+                  data-position="bottom left" />
+                <label>Background</label>
+              </div>
+              <div>
+                <input type="text" id="settings-floorplan-border-color" class="color-picker"
+                  data-position="bottom left" />
+                <label>Border</label>
+              </div>
+              <div>
+                <input type="text" id="settings-floorplan-avatar-color" class="color-picker"
+                  data-position="bottom left" />
+                <label>Avatar</label>
+              </div>
+              <div>
+                <input type="text" id="settings-floorplan-avatar-outline-color" class="color-picker"
+                  data-position="bottom left" />
+                <label>Avatar Outline</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Drawing tab -->
+        <div class="hoops-ui-window-body" id="settings-tab-drawing">
+          <div class="settings-group-header">Drawing</div>
+          <div class="settings-group settings-group-general">
+            <div class="settings-block">
+              <div>Drawing Colors:</div>
+              <div>
+                <input type="text" id="settings-drawing-background" class="color-picker" data-position="bottom left" />
+                <label>Background</label>
+              </div>
+              <div>
+                <input type="text" id="settings-drawing-sheet" class="color-picker" data-position="bottom left" />
+                <label>Sheet</label>
+              </div>
+              <div>
+                <input type="text" id="settings-drawing-sheet-shadow" class="color-picker"
+                  data-position="bottom left" />
+                <label>Sheet Shadow</label>
+              </div>
+              <div>
+                <input type="checkbox" id="settings-drawing-background-enabled" />
+                <label>Show Sheet Background</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Walk tab -->
+        <div class="hoops-ui-window-body" id="settings-tab-walk">
+          <div class="settings-group-header">Walk Mode</div>
+          <div class="settings-group settings-group-general">
+            <div class="settings-block">
+              <label>Walk Mode:</label>
+              <select id="settings-walk-mode" class="right-align">
+                <option value="0">Mouse</option>
+                <option value="1">Keyboard</option>
+              </select>
+              <span class="clear-both"></span>
+            </div>
+
+            <div class="settings-block" id="walk-navigation-keys">
+              <div id="walk-navigation-text" class="center-align bold">Navigation Keys</div>
+              <div>
+                <span id="walk-key-forward">W</span> /
+                <span id="walk-key-left">A</span> /
+                <span id="walk-key-backward">S</span> /
+                <span id="walk-key-right">D</span>
+                <span class="right-align">Move</span>
+              </div>
+              <div>
+                <span id="walk-key-rotate-left">Q</span> /
+                <span id="walk-key-rotate-right">E</span>
+                <span class="right-align">rotate</span>
+              </div>
+              <div>
+                <span id="walk-key-up">X</span> /
+                <span id="walk-key-down">C</span>
+                <span class="right-align">Up / Down</span>
+              </div>
+              <div>
+                <span id="walk-key-tilt-up">R</span> /
+                <span id="walk-key-tilt-down">F</span>
+                <span id="move-keys" class="right-align">Tilt</span>
+              </div>
+              <div>
+                <span id="walk-key-toggle-collision">V</span>
+                <span class="right-align">Toggle Collision Detection</span>
+              </div>
+
+            </div>
+
+            <div class="settings-block">
+              <span id="walk-rotation-text">Rotation (Deg/s):</span>
+              <input type="number" min="0" id="settings-walk-rotation" class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+
+            <div class="settings-block">
+              <span id="walk-speed-text">Walk Speed (<span id="walk-speed-units">m</span>/s):</span>
+              <input type="number" min="0" id="settings-walk-speed" step=".1" class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <span id="walk-elevation-text">Elevation Speed (<span id="elevation-speed-units">m</span>/s):</span>
+              <input type="number" min="0" id="settings-walk-elevation" step=".1" class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <span id="walk-view-angle-text">Field of View (Deg):</span>
+              <input type="number" min="30" max="150" id="settings-walk-view-angle" class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <span id="walk-mouse-look-text">Enable Mouse Look:</span>
+              <input type="checkbox" id="settings-mouse-look-enabled" />
+
+              <span id="settings-mouse-look-style" class="grayed-out right-align">
+                <label>Speed: </label>
+                <input id="settings-mouse-look-speed" type="number" />
+              </span>
+            </div>
+            <div class="settings-block">
+              <span id="walk-bim-mode-text">Enable Collision Detection:</span>
+              <input type="checkbox" id="settings-bim-mode-enabled" />
+              <span class="clear-both"></span>
+            </div>
+          </div>
+        </div>
+
+        <!--General tab-->
+        <div class="hoops-ui-window-body selected" id="settings-tab-general">
+          <!-- general -->
+          <div class="settings-group-header">General</div>
+          <div class="settings-group settings-group-general">
+            <div class="settings-block">
+              <label>Projection Mode:</label>
+              <select id="settings-projection-mode" class="right-align">
+                <option value="0">Orthographic</option>
+                <option value="1">Perspective</option>
+              </select>
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <span class="framerate-text">Framerate (fps):</span>
+              <input type="number" min="0" id="settings-framerate" class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <span>Hidden Line Opacity (0-1): </span>
+              <input id="settings-hidden-line-opacity" class="right-align" type="number" min="0" max="1" step=".1" />
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <label for="settings-show-backfaces">Show Backfaces:</label>
+              <input type="checkbox" id="settings-show-backfaces" class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <label for="settings-show-capping-geometry">Show Capping Geometry:</label>
+              <input type="checkbox" id="settings-show-capping-geometry" class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <span>Enable Face / Line Selection: </span>
+              <input type="checkbox" id="settings-enable-face-line-selection" class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <span>Selection Honors Scene Visibility:</span>
+              <input type="checkbox" id="settings-select-scene-invisible" class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <span>Rotate Around Camera Center:</span>
+              <input type="checkbox" id="settings-orbit-mode" class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+          </div>
+
+          <!-- effects -->
+          <div class="settings-group-header">Effects</div>
+          <div class="settings-group settings-group-general">
+
+            <div class="settings-block">
+              <span>Enable Ambient Occlusion:</span>
+              <input type="checkbox" id="settings-ambient-occlusion" />
+              <input id="settings-ambient-occlusion-radius" type="number" min="0" max="10" step=".01"
+                class="right-align" />
+              <div class="right-align">Radius: </div>
+              <span class="clear-both"></span>
+            </div>
+
+            <div class="settings-block">
+              <span>Enable Anti-Aliasing:</span>
+              <input type="checkbox" id="settings-anti-aliasing" class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+
+            <div class="settings-block">
+              <div>
+                <span>Enable Bloom:</span>
+                <input type="checkbox" id="settings-bloom-enabled" class="right-align" />
+              </div>
+              <span id="settings-bloom-style" class="grayed-out">
+                <label>Intensity Scale:</label>
+                <input id="settings-bloom-intensity" type="number" min="0" step=".1" class="right-align" disabled />
+                <span class="clear-both"></span>
+                <label>Threshold:</label>
+                <input type="range" id="settings-bloom-threshold" min="0" max="1" step="0.1" class="right-align"
+                  disabled />
+              </span>
+            </div>
+
+            <div class="settings-block">
+              <div>
+                <span>Silhouette Edges:</span>
+                <input type="checkbox" id="settings-silhouette-enabled" class="right-align" />
+              </div>
+            </div>
+
+            <div class="settings-block">
+              <div>
+                <span>Reflection Planes:</span>
+                <input type="checkbox" id="settings-reflection-enabled" class="right-align" />
+              </div>
+            </div>
+
+            <div class="settings-block">
+              <div>
+                <span>Enable Shadows:</span>
+                <input type="checkbox" id="settings-shadow-enabled" class="right-align" />
+              </div>
+              <span id="settings-shadow-style" class="grayed-out">
+                <span>Interactive:</span>
+                <input type="checkbox" id="settings-shadow-interactive" class="right-align" disabled />
+                <span class="clear-both"></span>
+
+                <label>Blur Samples:</label>
+                <input type="range" id="settings-shadow-blur-samples" min="0" max="20" step="1" class="right-align"
+                  disabled />
+              </span>
+            </div>
+
+          </div>
+
+          <!-- axis -->
+          <div class="settings-group-header">Axis</div>
+          <div class="settings-group settings-group-general">
+            <div class="settings-block">
+              <span>Show Axis Triad:</span>
+              <input type="checkbox" id="settings-axis-triad" class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+            <div class="settings-block">
+              <span>Show Nav Cube:</span>
+              <input type="checkbox" id="settings-nav-cube" class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+          </div>
+
+          <!-- point cloud -->
+          <div class="settings-group-header">Point Cloud</div>
+          <div class="settings-group settings-group-general">
+            <div class="settings-block">
+              <span>Enable Splats:</span>
+              <input type="checkbox" id="settings-splat-rendering-enabled" />
+
+              <span id="settings-splat-enabled-style" class="grayed-out right-align">
+                <label>Size: </label>
+                <input id="settings-splat-rendering-size" step=".01" type="number" />
+
+                <label>Mode:</label>
+                <select id="settings-splat-rendering-point-size-unit">
+                  <option value="0">ScreenPixels</option>
+                  <option value="1">CSSPixels</option>
+                  <option value="2">World</option>
+                  <option value="3">ScreenWidth</option>
+                  <option value="4">ScreenHeight</option>
+                  <option value="5">BoundingDiagonal</option>
+                </select>
+              </span>
+            </div>
+            <div class="settings-block">
+              <span>Enable Eye-Dome Lighting:</span>
+              <input type="checkbox" id="settings-eye-dome-lighting-enabled" class="right-align" />
+              <span class="clear-both"></span>
+            </div>
+          </div>
+
+          <!--color-->
+          <div class="settings-group-header">Color</div>
+          <div class="settings-group settings-group-colors">
+            <div class="settings-block">
+              <div>Background Color:</div>
+              <div>
+                <input type="text" id="settings-background-top" class="color-picker" data-position="top left" />
+                <label>Top</label>
+              </div>
+              <div>
+                <input type="text" id="settings-background-bottom" class="color-picker" data-position="top left" />
+                <label>Bottom</label>
+              </div>
+            </div>
+            <div class="settings-block">
+              <div>Capping Geometry:</div>
+              <div>
+                <input type="text" id="settings-capping-face-color" class="color-picker" data-position="top left" />
+                <label>Face</label>
+              </div>
+              <div>
+                <input type="text" id="settings-capping-line-color" class="color-picker" data-position="top left" />
+                <label>Line</label>
+              </div>
+            </div>
+            <div class="settings-block">
+              <div>Selection Color:</div>
+              <input type="text" id="settings-selection-color-body" class="color-picker" data-position="top left" />
+              <label>Body</label>
+              <div>
+                <span id="settings-selection-color-face-line-style">
+                  <input type="text" id="settings-selection-color-face-line" class="color-picker"
+                    data-position="top left" />
+                  <label>Faces and Lines</label>
+                </span>
+              </div>
+            </div>
+            <div class="settings-block">
+              <input type="text" id="settings-measurement-color" class="color-picker" data-position="top left" />
+              <label>Measurement Color</label>
+            </div>
+            <div class="settings-block">
+              <span id="settings-pmi-color-style" class="grayed-out">
+                <input type="text" id="settings-pmi-color" class="color-picker" data-position="top left" disabled />
+                <label>PMI Override Color</label>
+              </span>
+              <input type="checkbox" id="settings-pmi-enabled" />
+              <label>Enable</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div>
+          <div class="hoops-ui-window-footer">
+            <div class="version">
+              Viewer Version:
+              <span id="settings-viewer-version"></span>, Format Version:
+              <span id="settings-format-version"></span>
+            </div>
             <div class="hoops-ui-footer-buttons">
-                <button id="snapshot-dialog-cancel-button">Close</button>
+              <button id="viewer-settings-ok-button">Ok</button>
+              <button id="viewer-settings-cancel-button">Cancel</button>
+              <button id="viewer-settings-apply-button">Apply</button>
             </div>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
+
+  <div id="snapshot-dialog" class="hoops-ui-window">
+    <div class="hoops-ui-window-header">Snapshot</div>
+    <div class="hoops-ui-window-body">
+      <img id="snapshot-dialog-image" class="snapshot-image" alt="Snapshot" />
+      <div class="snapshot-text">Right Click to Save image</div>
+    </div>
+    <div class="hoops-ui-window-footer">
+      <div class="hoops-ui-footer-buttons">
+        <button id="snapshot-dialog-cancel-button">Close</button>
+      </div>
+    </div>
+  </div>
 
 </body>
+
 </html>

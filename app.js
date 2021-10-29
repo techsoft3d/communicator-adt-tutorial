@@ -1,98 +1,68 @@
-const ADT_URL = 'https://xxx.azure.net/digitaltwins/';
-
-var express = require("express");
-const request = require('request');
-
-var app = express();
+const msal = require('./server/msal');
+const express = require("express");
+const axios = require("axios").default;
+const app = express();
 const server = require('http').createServer(app);
+const update_data = require("./server/update_data");
+const PORT = process.env.PORT || 3000;
 
-const { access } = require("fs");
+const adtConfig = require('./adt.config');
+const ADT_URL = 'https://' + adtConfig.hostname + '/';
 
-app.listen(3000, () => {
-    console.log("Server running on port 3000"); 
+var vibrationAlertTriggered = false;
+
+// Prevents updating when no one is accessing the server
+const UPDATE_TIMEOUT = 15;
+var countdown = UPDATE_TIMEOUT;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 app.use(express.static('src'));
+app.use(express.json()); // for parsing application/json
+app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
-app.get('/', function(req, res){
-    res.sendFile(__dirname + '/src/index.html');
-});
-
-app.get("/data/*", (req, res, next) => {  
-    const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + req.headers.authorization
-    }
-    new Promise((resolve, reject) => {
-        request.get({
-            url: ADT_URL + req.params[0] + '?api-version=2020-10-31',
-            headers: headers
-        }, function (error, response, body) {
-            if (response != undefined && response.statusCode != undefined && response.statusCode !== 201) {
-                resolve(body);
-            } 
-        });
-    }).then( (result) => {
-        res.send(result);
-    });
-});
-
-app.get("/relationships/*", (req, res, next) => {
-    const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + req.headers.authorization
-    }
-    new Promise((resolve, reject) => {
-        request.get({
-            url: ADT_URL + req.params[0] + '/relationships' + '?api-version=2020-10-31',
-            headers: headers
-        }, function (error, response, body) {
-            if (response != undefined && response.statusCode != undefined && response.statusCode !== 201) {
-                resolve(body);
-            }
-        });
-    }).then( (result) => {
-        res.send(result);
-    });
+app.get('/', function (req, res) {
+  res.sendFile(__dirname + '/src/index.html');
 });
 
 app.post("/force_alert", (req, res, next) => {
-    var options = {
-        'method': 'PATCH',
-        'url': ADT_URL + 'Grinding.pu01.l01' + '?api-version=2020-10-31',
-        'headers': {
-          'Content-Type': 'application/json-patch+json',
-          'Authorization': 'Bearer ' + req.headers.authorization,
-        },
-        body: "[{\n\"op\": \"replace\",\n\"path\": \"/vibrationAlert\",\n\"value\": true\n},\n{\n\"op\": \"replace\",\n\"path\": \"/Vibration\",\n\"value\": 300\n}\n]"
-    };
-    new Promise((resolve, reject) => {
-        request(options, (error, response) => {
-            if (error) throw new Error(error);
-            console.log(response.body);
-        });
-    }).then( (result) => {
-        res.send(result);
-    });
+  vibrationAlertTriggered = true;
 });
 
 app.post("/reset_alert", (req, res, next) => {
-
-    var options = {
-        'method': 'PATCH',
-        'url': ADT_URL + 'Grinding.pu01.l01' + '?api-version=2020-10-31',
-        'headers': {
-          'Content-Type': 'application/json-patch+json',
-          'Authorization': 'Bearer ' + req.headers.authorization,
-        },
-        body: "[{\n\"op\": \"replace\",\n\"path\": \"/vibrationAlert\",\n\"value\": false\n},\n{\n\"op\": \"replace\",\n\"path\": \"/Vibration\",\n\"value\": 260\n}\n]"
-    };
-    new Promise((resolve, reject) => {
-        request(options, (error, response) => {
-            if (error) throw new Error(error);
-            console.log(response.body);
-        });
-    }).then( (result) => {
-        res.send(result);
-    });
+  vibrationAlertTriggered = false;
 });
+
+// Query twins which has scs model
+app.post("/query_twins", (req, res, next) => {
+  countdown = UPDATE_TIMEOUT;
+  msal.getToken().then(token => {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    };
+    const url = ADT_URL + 'query?api-version=2020-10-31';
+
+    axios.post(url, {
+      "query": req.body["query"]
+    }, {
+      headers: headers,
+    }).then(axiosres => {
+      res.send(axiosres.data["value"]);
+    }).catch(err => {
+      res.status(418).send(err);
+    });
+  });
+});
+
+// Start updating data every 5 seconds
+setInterval(() => {
+  if (countdown <= 5) {
+    countdown = 0;
+  } else {
+    countdown -= 5;
+    update_data(vibrationAlertTriggered);
+  }
+}, 5000);
