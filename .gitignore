@@ -103,10 +103,6 @@ dist
 # TernJS port file
 .tern-port
 
-# ADT Credentials
-adt.config.json
-adt.config.js
-
 # Azure Deployment
 .deployment
 

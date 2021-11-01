@@ -10,9 +10,8 @@ Node.js
 ## Getting Started
 
 ### Setting up the ADT graph
-* Follow https://github.com/Teodelas/digital-twins-samples/tree/master/HandsOnLab
-* Replace ADT_URL in /app.js with the url of your ADT graph
-* Replace CLIENT_ID and AUTHORITY in /js/adt_helper.js to connect to your ADT graph
+* Follow https://docs.microsoft.com/en-us/learn/modules/build-azure-digital-twins-graph-for-chocolate-factory/
+* Update fields in adt.config.js to reference your ADT instance
 
 ### Running the demo
 npm install
