@@ -114,12 +114,10 @@
         }
         if (key.includes("Alert")) {
           if (twinData[key] == true) {
-            // hwv.selectionManager.selectNode(twin.nodeId);
-            // hwv.model.setNodesHighlighted([twin.nodeId], true);
+            hwv.model.setNodesHighlighted([twin.nodeId], true);
             triggerButton.textContent = "Reset";
           } else {
-            // hwv.selectionManager.clear();
-            // hwv.model.setNodesHighlighted([twin.nodeId], false);
+            hwv.model.setNodesHighlighted([twin.nodeId], false);
             triggerButton.textContent = "Trigger";
           }
         }
@@ -154,7 +152,7 @@
         return nodeId;
       });
       setInterval(function () {
-        // poll();
+        poll();
       }, 5000);
 
       hwv.view.setCamera(Communicator.Camera.create(new Communicator.Point3(4102, 2692, 11160),
@@ -169,13 +167,12 @@
     }
 
     function selectionArrayFunc(events, removed) {
-      // if (events[0] != undefined) {
-      //   currentSelection = events[0]._selection._nodeId;
-      // }
-      // else {
-      //   matrix = hwv.getModel().getNodeNetMatrix(currentSelection);
-      // }
-
+      const handleOperator = hwv.operatorManager.getOperator(Communicator.OperatorId.Handle);
+      if (events[0] != undefined) {
+        handleOperator.addHandles([events[0]._selection._nodeId]);
+      } else {
+        handleOperator.removeHandles();
+      }
     }
 
     window.onload = function () {
