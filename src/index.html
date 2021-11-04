@@ -74,9 +74,12 @@
               array.push(twinData["Transformation"][i]);
             }
             let transformationMatrix = Communicator.Matrix.createFromArray(array);
-            hwv.model.loadSubtreeFromScsFile(-2, scsFile, transformationMatrix).then((nodeIds) => {
+            var machinenode = hwv.model.createNode(hwv.model.getRootNode(),"");
+            hwv.model.setNodeMatrix(machinenode, transformationMatrix);
+            hwv.model.loadSubtreeFromScsFile(machinenode, scsFile).then((nodeIds) => {
+
               let twin = twins[twinData["$dtId"]];
-              twin.nodeId = nodeIds[0];
+              twin.nodeId = machinenode;
               createMarkup(twinData);
               // All model loaded, resolve the promise
               if (index == resultData.length - 1) {
