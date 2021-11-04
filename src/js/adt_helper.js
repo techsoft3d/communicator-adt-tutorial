@@ -1,5 +1,4 @@
-const serverUrl = `https://adt-communicator.azurewebsites.net/`;
-// const serverUrl = `http://localhost:3000/`;
+const serverUrl = `http://localhost:3000/`;
 
 function query_twins(query) {
   return new Promise((resolve, reject) => {

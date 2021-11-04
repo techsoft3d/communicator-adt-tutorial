@@ -44,6 +44,7 @@
     var md = new MobileDetect(window.navigator.userAgent);
     var currentSelection = null;
     var triggerButton = null;
+    // {dtid: {nodeId, markup}}
     var twins = {};
 
     function createMarkup(twinData) {
@@ -61,24 +62,31 @@
     }
 
     function loadModel() {
-      query_twins("SELECT * FROM digitaltwins T WHERE IS_DEFINED(T.SCSFile) AND IS_DEFINED(Transformation)").then(result => {
-        let resultData = JSON.parse(result);
-        resultData.forEach(twinData => {
-          console.log(twinData);
-          twins[twinData["$dtId"]] = {};
-          let scsFile = './scs_models/' + twinData["SCSFile"] + ".scs";
-          let array = [];
-          for (let i = 1; i <= 16; i += 1) {
-            array.push(twinData["Transformation"][i]);
-          }
-          let transformationMatrix = Communicator.Matrix.createFromArray(array);
-          hwv.model.loadSubtreeFromScsFile(-2, scsFile, transformationMatrix).then((nodeIds) => {
-            let twin = twins[twinData["$dtId"]];
-            twin.nodeId = nodeIds[0];
-            createMarkup(twinData);
+      return new Promise((resolve) => {
+        query_twins("SELECT * FROM digitaltwins T WHERE IS_DEFINED(T.SCSFile) AND IS_DEFINED(Transformation)").then(result => {
+          let resultData = JSON.parse(result);
+          resultData.forEach((twinData, index) => {
+            console.log(twinData);
+            twins[twinData["$dtId"]] = {};
+            let scsFile = './scs_models/' + twinData["SCSFile"] + ".scs";
+            let array = [];
+            for (let i = 1; i <= 16; i += 1) {
+              array.push(twinData["Transformation"][i]);
+            }
+            let transformationMatrix = Communicator.Matrix.createFromArray(array);
+            hwv.model.loadSubtreeFromScsFile(-2, scsFile, transformationMatrix).then((nodeIds) => {
+              let twin = twins[twinData["$dtId"]];
+              twin.nodeId = nodeIds[0];
+              createMarkup(twinData);
+              // All model loaded, resolve the promise
+              if (index == resultData.length - 1) {
+                resolve();
+              }
+            });
           });
         });
       });
+
     }
 
     function poll() {
@@ -106,10 +114,12 @@
         }
         if (key.includes("Alert")) {
           if (twinData[key] == true) {
-            hwv.selectionManager.selectNode(twin.nodeId);
+            // hwv.selectionManager.selectNode(twin.nodeId);
+            // hwv.model.setNodesHighlighted([twin.nodeId], true);
             triggerButton.textContent = "Reset";
           } else {
-            hwv.selectionManager.clear();
+            // hwv.selectionManager.clear();
+            // hwv.model.setNodesHighlighted([twin.nodeId], false);
             triggerButton.textContent = "Trigger";
           }
         }
@@ -125,8 +135,26 @@
     function sceneReadyFunc() {
       triggerButton = document.getElementById('trigger-button');
       loadModel();
+      // set selection filter to select only the whole models
+      hwv.selectionManager.setSelectionFilter(function (nodeId, model) {
+        // check if node is a child of twin.nodeId
+        let currentNodeId = nodeId;
+        let parentNodeId = model.getNodeParent(currentNodeId);
+        while (currentNodeId != null) {
+          if (parentNodeId == model.getAbsoluteRootNode()) {
+            for (let i = 0; i < Object.values(twins).length; i++) {
+              if (currentNodeId == Object.values(twins)[i].nodeId) {
+                return currentNodeId;
+              }
+            }
+          }
+          currentNodeId = parentNodeId;
+          parentNodeId = model.getNodeParent(currentNodeId);
+        }
+        return nodeId;
+      });
       setInterval(function () {
-        poll();
+        // poll();
       }, 5000);
 
       hwv.view.setCamera(Communicator.Camera.create(new Communicator.Point3(4102, 2692, 11160),
@@ -141,12 +169,12 @@
     }
 
     function selectionArrayFunc(events, removed) {
-      if (events[0] != undefined) {
-        currentSelection = events[0]._selection._nodeId;
-      }
-      else {
-        matrix = hwv.getModel().getNodeNetMatrix(currentSelection);
-      }
+      // if (events[0] != undefined) {
+      //   currentSelection = events[0]._selection._nodeId;
+      // }
+      // else {
+      //   matrix = hwv.getModel().getNodeNetMatrix(currentSelection);
+      // }
 
     }
 
@@ -172,6 +200,10 @@
       viewer.setCallbacks({
         sceneReady: sceneReadyFunc,
         selectionArray: selectionArrayFunc,
+        handleEventEnd: (eventType, nodeIds, initialMatrices, newMatrices) => {
+            //handle event finished, model has been moved to a new position
+            console.log(newMatrices[0].toJson());
+        }
       });
     }
 

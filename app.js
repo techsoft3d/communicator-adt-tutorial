@@ -63,6 +63,6 @@ setInterval(() => {
     countdown = 0;
   } else {
     countdown -= 5;
-    update_data(vibrationAlertTriggered);
+    // update_data(vibrationAlertTriggered);
   }
 }, 5000);
