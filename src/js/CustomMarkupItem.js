@@ -1,14 +1,13 @@
 /*export default*/ class CustomMarkupItem extends Communicator.Markup.MarkupItem { 
-    constructor(viewer, nodeId, nodeName, selectionPosition, normal, length, width, height) {
+    constructor(viewer, nodeId, nodeName, position, normal, length) {
         super();
         this._viewer = viewer;
         this._nodeId = nodeId;
         this._nodeName = nodeName;
-        this._selectionPosition = selectionPosition.copy();
+        this._position = position.copy();
         this._normal = normal.copy();
         this._length = length;
-        this._width = width;
-        this._height = height;
+      
 
         this._lineGeometryShape = new Communicator.Markup.Shape.Polyline();
         this._lineGeometryShape.setStrokeWidth(2);
@@ -25,20 +24,8 @@
         const renderer = this._viewer.markupManager.getRenderer();
         const view = this._viewer.view;
 
-        const secondPoint = this._selectionPosition.copy().add(this._normal.copy().scale(this._length));
+        const secondPoint = this._position.copy().add(this._normal.copy().scale(this._length));
         const secondPointProjected = Communicator.Point2.fromPoint3(view.projectPoint(secondPoint));
-
-        // Adjust text box location to avoid placed outside of the view
-        if (undefined != this._width && undefined != this._width) {
-            let size = renderer.measureTextBox(this._textBox);
-            if (this._width <= (secondPointProjected.x + size.x) && size.x < this._width) {
-                secondPointProjected.x = this._width - size.x;
-            }
-            if (this._height <= (secondPointProjected.y + size.y) && size.y < this._height) {
-                secondPointProjected.y = this._height - size.y;
-            }
-        }
-
         this._textBox.setPosition(secondPointProjected);
         
         renderer.drawTextBox(this._textBox);
@@ -58,7 +45,7 @@
         return true;
     }
     getPosition() {
-        return this._selectionPosition.copy();
+        return this._position.copy();
     }
     getNormal() {
         return this._normal.copy();
