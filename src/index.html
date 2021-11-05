@@ -20,9 +20,6 @@
   <script type="text/javascript" src="js/communicator_server_integration.js?v=2fc2526"></script>
   <script type="text/javascript" src="js/sample.js?v=2fc2526"></script>
 
-  <script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.2.1/js/msal.js"
-    integrity="sha384-9TV1245fz+BaI+VvCjMYL0YDMElLBwNS84v3mY57pXNOt6xcUYch2QLImaTahcOP"
-    crossorigin="anonymous"></script>
   <script type="text/javascript" src="js/adt_helper.js"></script>
   <script type="text/javascript" src="js/CustomMarkupItem.js"></script>
 
@@ -74,12 +71,11 @@
               array.push(twinData["Transformation"][i]);
             }
             let transformationMatrix = Communicator.Matrix.createFromArray(array);
-            var machinenode = hwv.model.createNode(hwv.model.getRootNode(),"");
-            hwv.model.setNodeMatrix(machinenode, transformationMatrix);
-            hwv.model.loadSubtreeFromScsFile(machinenode, scsFile).then((nodeIds) => {
 
+            hwv.model.loadSubtreeFromScsFile(hwv.model.getRootNode(), scsFile, transformationMatrix).then((nodeIds) => {
+              hwv.model.setNodeMatrix(nodeIds[0], transformationMatrix);
               let twin = twins[twinData["$dtId"]];
-              twin.nodeId = machinenode;
+              twin.nodeId = nodeIds[0];
               createMarkup(twinData);
               // All model loaded, resolve the promise
               if (index == resultData.length - 1) {
