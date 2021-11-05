@@ -1,42 +1,28 @@
 const serverUrl = `http://localhost:3000/`;
 
-function query_twins(query) {
-  return new Promise((resolve, reject) => {
-    var xhr = new XMLHttpRequest();
 
-    xhr.addEventListener("readystatechange", function () {
-      if (this.readyState === 4) {
-        resolve(this.responseText);
-      }
-    });
+async function query_twins(query) {
 
-    xhr.addEventListener("error", function (e) {
-      console.log(e);
-    });
-
-    const url = serverUrl + "query_twins";
-    xhr.open("POST", url);
-    xhr.setRequestHeader("Content-Type", "application/json")
-    xhr.send(JSON.stringify({
-      query: query
-    }));
+  const url = serverUrl + "query_twins";
+  let response = await fetch(url, {
+    method: 'POST', headers: {
+      'Content-Type': 'application/json',     
+    },
+    body: JSON.stringify({query: query})
   })
+  .catch((error) => {
+    console.error('Error:', error);
+  });
+  return await response.json();
 }
 
 function force_alert() {
-  console.log("fa")
-  var xhr = new XMLHttpRequest();
+  console.log("fa");
 
-  xhr.open("POST", serverUrl + 'force_alert');
-  xhr.setRequestHeader("Content-Type", "application/json")
-  xhr.send();
+  fetch(serverUrl + 'force_alert', { method: 'POST' });
 }
 
 function reset_alert() {
   console.log("ra");
-  var xhr = new XMLHttpRequest();
-
-  xhr.open("POST", serverUrl + 'reset_alert');
-  xhr.setRequestHeader("Content-Type", "application/json")
-  xhr.send();
+  fetch(serverUrl + 'reset_alert', { method: 'POST' });
 }
