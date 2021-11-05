@@ -115,6 +115,13 @@ function sceneReadyFunc() {
     0.01
   )
   );
+
+  window.onresize = function (event) {
+    // jQuery resizable triggers onresize, check that the call is not coming from a DOM element object
+    if (typeof event.target.getAttribute !== "function" && hwv != null) {
+      hwv.resizeCanvas();
+    }
+  };
 }
 
 function selectionArrayFunc(events, removed) {
