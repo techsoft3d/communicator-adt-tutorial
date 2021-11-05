@@ -1,8 +1,8 @@
 const msal = require('./server/msal');
 const express = require("express");
-const axios = require("axios").default;
+const fetch = require('node-fetch');
+
 const app = express();
-const server = require('http').createServer(app);
 const update_data = require("./server/update_data");
 const PORT = process.env.PORT || 3000;
 
@@ -36,25 +36,29 @@ app.post("/reset_alert", (req, res, next) => {
 });
 
 // Query twins which has scs model
-app.post("/query_twins", (req, res, next) => {
+app.post("/query_twins", async (req, res, next) => {
   countdown = UPDATE_TIMEOUT;
-  msal.getToken().then(token => {
-    const headers = {
+  let token = await msal.getToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ' + token
+  };
+  const url = ADT_URL + 'query?api-version=2020-10-31';
+
+  let response = await fetch(url, {
+    method: 'POST', headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token
-    };
-    const url = ADT_URL + 'query?api-version=2020-10-31';
-
-    axios.post(url, {
-      "query": req.body["query"]
-    }, {
-      headers: headers,
-    }).then(axiosres => {
-      res.send(axiosres.data["value"]);
-    }).catch(err => {
-      res.status(418).send(err);
-    });
+    },    
+       body: JSON.stringify({query: req.body.query})
+  })
+  .catch((err) => {
+    res.status(418).send(err);
   });
+
+  var data = await response.json();
+
+  res.send(data.value);
 });
 
 // Start updating data every 5 seconds

@@ -1,6 +1,7 @@
-const axios = require("axios").default;
+const fetch = require('node-fetch');
 const msal = require('./msal');
 const adtConfig = require('../adt.config');
+
 const ADT_URL = 'https://' + adtConfig.hostname + '/';
 
 /// For updating data
@@ -14,18 +15,18 @@ function update_data(vibrationAlertTriggered) {
 }
 
 // deviceType: "grinding", "fanning", "conching", "winnowing", or "molding"
-function update_step_data(deviceType, vibrationAlertTriggered) {
-  msal.getToken().then(token => {
-    const headers = {
+async function update_step_data(deviceType, vibrationAlertTriggered) {
+  let token = await msal.getToken();
+   
+  const url = ADT_URL + 'digitaltwins/' + capitalizeFirstLetter(deviceType) + '?api-version=2020-10-31';    
+  let response = await fetch(url, {
+    method: 'PATCH', headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token
-    };
-
-    const url = ADT_URL + 'digitaltwins/' + capitalizeFirstLetter(deviceType) + '?api-version=2020-10-31';
-    axios.patch(url, generateMessage(deviceType, vibrationAlertTriggered), {
-      headers: headers
-    });
+    },    
+       body: JSON.stringify(generateMessage(deviceType, vibrationAlertTriggered))
   });
+
 }
 
 // Generating message for "grinding", "fanning", or "molding"
@@ -76,7 +77,7 @@ function generateMessage(deviceType, vibrationAlertTriggered) {
     });
   }
 
-  return JSON.stringify(mapped_data);
+  return mapped_data;
 }
 
 // Utility Function
