@@ -2,8 +2,6 @@ const fetch = require('node-fetch');
 const msal = require('../server/msal');
 const update_data = require("../server/update_data");
 
-
-
 const adtConfig = require('../adt.config');
 const ADT_URL = 'https://' + adtConfig.hostname + '/';
 
