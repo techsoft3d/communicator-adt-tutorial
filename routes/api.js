@@ -6,5 +6,8 @@ const router = express.Router();
 router.post('/force_alert', apiController.forceAlert);
 router.post('/reset_alert', apiController.resetAlert);
 router.post('/query_twins', apiController.queryTwins);
+router.post('/query_twins', apiController.queryTwins);
+router.get('/models', apiController.getModels);
+
 
 module.exports = router;

@@ -44,6 +44,30 @@ exports.queryTwins = async(req, res, next) => {
     res.send(data.value);
 };
 
+exports.getModels = async(req, res, next) => {
+    countdown = UPDATE_TIMEOUT;
+    let token = await msal.getToken();
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    };
+    const url = ADT_URL + 'models?includeModelDefinition=true&api-version=2020-10-31';
+  
+    let response = await fetch(url, {
+      method: 'GET', headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      }
+    })
+    .catch((err) => {
+      res.status(418).send(err);
+    });
+  
+    var data = await response.json();
+  
+    res.send(data);
+};
+
 // Start updating data every 5 seconds
 setInterval(() => {
     if (countdown <= 5) {

@@ -16,6 +16,19 @@ async function query_twins(query) {
   return await response.json();
 }
 
+
+
+async function get_Models() {
+
+  const url = serverUrl + "models";
+  let response = await fetch(url)
+  .catch((error) => {
+    console.error('Error:', error);
+  });
+  return await response.json();
+}
+
+
 function force_alert() {
   console.log("fa");
 
