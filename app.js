@@ -1,15 +1,9 @@
-const msal = require('./server/msal');
 const express = require("express");
-const fetch = require('node-fetch');
+
+const apiRoutes = require('./routes/api');
 
 const app = express();
-const update_data = require("./server/update_data");
 const PORT = process.env.PORT || 3000;
-
-const adtConfig = require('./adt.config');
-const ADT_URL = 'https://' + adtConfig.hostname + '/';
-
-var vibrationAlertTriggered = false;
 
 // Prevents updating when no one is accessing the server
 const UPDATE_TIMEOUT = 15;
@@ -23,50 +17,14 @@ app.use(express.static('src'));
 app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
+
+app.use("/", apiRoutes);
+
+
 app.get('/', function (req, res) {
   res.sendFile(__dirname + '/src/index.html');
 });
 
-app.post("/force_alert", (req, res, next) => {
-  vibrationAlertTriggered = true;
-});
 
-app.post("/reset_alert", (req, res, next) => {
-  vibrationAlertTriggered = false;
-});
 
-// Query twins which has scs model
-app.post("/query_twins", async (req, res, next) => {
-  countdown = UPDATE_TIMEOUT;
-  let token = await msal.getToken();
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer ' + token
-  };
-  const url = ADT_URL + 'query?api-version=2020-10-31';
 
-  let response = await fetch(url, {
-    method: 'POST', headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + token
-    },    
-       body: JSON.stringify({query: req.body.query})
-  })
-  .catch((err) => {
-    res.status(418).send(err);
-  });
-
-  var data = await response.json();
-
-  res.send(data.value);
-});
-
-// Start updating data every 5 seconds
-setInterval(() => {
-  if (countdown <= 5) {
-    countdown = 0;
-  } else {
-    countdown -= 5;
-    update_data(vibrationAlertTriggered);
-  }
-}, 5000);
