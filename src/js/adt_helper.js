@@ -18,9 +18,9 @@ async function query_twins(query) {
 
 
 
-async function get_Models() {
+async function get_allTwins() {
 
-  const url = serverUrl + "models";
+  const url = serverUrl + "allTwins";
   let response = await fetch(url)
   .catch((error) => {
     console.error('Error:', error);

@@ -22,10 +22,7 @@ exports.resetAlert = async(req, res, next) => {
 exports.queryTwins = async(req, res, next) => {
     countdown = UPDATE_TIMEOUT;
     let token = await msal.getToken();
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + token
-    };
+  
     const url = ADT_URL + 'query?api-version=2020-10-31';
   
     let response = await fetch(url, {
@@ -44,13 +41,12 @@ exports.queryTwins = async(req, res, next) => {
     res.send(data.value);
 };
 
+
+//retrieve all ADT models
 exports.getModels = async(req, res, next) => {
     countdown = UPDATE_TIMEOUT;
     let token = await msal.getToken();
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + token
-    };
+    
     const url = ADT_URL + 'models?includeModelDefinition=true&api-version=2020-10-31';
   
     let response = await fetch(url, {
@@ -67,6 +63,40 @@ exports.getModels = async(req, res, next) => {
   
     res.send(data);
 };
+
+//retrieve all ADT digitaltwins with relationships
+exports.getAllTwins = async(req, res, next) => {
+    countdown = UPDATE_TIMEOUT;
+    let token = await msal.getToken();
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    };
+    const url = ADT_URL + 'query?api-version=2020-10-31';
+  
+    let response = await fetch(url, { method: 'POST', headers: headers,    
+         body: JSON.stringify({query: "SELECT * FROM digitaltwins"})
+    })
+    .catch((err) => {
+      res.status(418).send(err);
+    });
+
+    var alltwins = await response.json();
+
+    for (let i=0;i<alltwins.value.length;i++)
+    {
+      let twin = alltwins.value[i];
+      const url = ADT_URL + 'digitaltwins/' + twin.$dtId + '/relationships?api-version=2020-10-31';
+      let response = await fetch(url, { method: 'GET', headers: headers})
+      .catch((err) => {
+        res.status(418).send(err);
+      });
+
+      alltwins.value[i].relationships = await response.json();
+    }
+    res.send(alltwins);
+  };
+
 
 // Start updating data every 5 seconds
 setInterval(() => {
