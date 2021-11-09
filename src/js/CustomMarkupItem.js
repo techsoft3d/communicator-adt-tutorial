@@ -53,4 +53,7 @@
     setLength(length) {
         this._length = length;
     }
+    setPosition(position) {
+      this._position = position.copy();
+    }
 }
