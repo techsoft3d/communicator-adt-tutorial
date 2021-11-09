@@ -4,6 +4,7 @@
   "description": "Integration between HOOPS Communicator and Azure Digital Twin",
   "main": "app.js",
   "scripts": {
+    "start": "nodemon --max-old-space-size=8192 app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -24,6 +25,7 @@
   "dependencies": {
     "@azure/msal-node": "^1.3.1",
     "express": "^4.17.1",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "nodemon": "^2.0.14"
   }
 }
