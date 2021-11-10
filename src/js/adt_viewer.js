@@ -222,13 +222,12 @@ function setupLayout() {
     buildGraph();
   }
 
-function buildDagreGraph(graph, twins) {
+function buildDagreGraph(graph, twins, twinhash) {
 
   for (let i = 0; i < twins.value.length; i++) {
     let twin = twins.value[i];
-    graph.setNode(twin.$dtId, { width: 25, height: 25 });
-
-
+    graph.setNode(twin.$dtId, { width: 50, height: 50 });
+    twinhash[twin.$dtId] = {rels: twin.relationships, dims:null, id:null};
     for (let j = 0; j < twin.relationships.value.length; j++) {
       let relationship = twin.relationships.value[j];
       graph.setEdge(relationship.$sourceId, relationship.$targetId);
@@ -238,11 +237,13 @@ function buildDagreGraph(graph, twins) {
 
 }
  
-  
+  var menuOpen = false;
+  var blockRightClick = false;
 
 
 async function buildGraph() {
 
+  window.wbManager.start("adtgraphdiv");
   let twins = await get_allTwins();
 
 
@@ -251,20 +252,47 @@ async function buildGraph() {
 
   graph.setDefaultEdgeLabel(function () { return {}; });
 
-  let size = 50;
 
-  graph.setGraph({ marginx: 0, ranksep: size });
+  graph.setGraph({ marginx: 0, ranksep: 100 });
 
-  buildDagreGraph(graph, twins);
+  let twinhash = [];
+  buildDagreGraph(graph, twins, twinhash);
 
   dagre.layout(graph);
 
   for (var v of graph.nodes()) {
     var n = graph.node(v);
     if (n != undefined) {
-      
+      let dims = {
+        left: n.x, top: n.y, width: 50, height: 50
+      };
+      let itemid;
+      if (twinhash[v].rels.value.length > 0)
+        itemid = window.wbManager.addItem(dims, "rgb(255,0,255)", wbManager.itemShape.circle);
+      else
+        itemid = window.wbManager.addItem(dims, "rgb(255,0,0)", wbManager.itemShape.circle);
+      twinhash[v].dims = dims;
+      twinhash[v].id = itemid;
+         
     }
-    //            }
-}
+  }
+
+  for (var i in twinhash) {
+
+    let rels = twinhash[i].rels;
+      for (let j = 0; j < rels.value.length; j++) {
+        let relationship = rels.value[j];
+
+        let item1 = relationship.$sourceId;
+        let item2 = relationship.$targetId;
+
+        let wbitem1 = twinhash[relationship.$sourceId].id;
+        let wbitem2 = twinhash[relationship.$targetId].id;
+
+        window.wbManager.addLine(new Communicator.Point2(twinhash[item1].dims.left + 50 / 2, twinhash[item1].dims.top + 50), new Communicator.Point2(twinhash[item2].dims.left + 50 / 2, twinhash[item2].dims.top), false, true, wbitem1, window.wbManager.lineSnapPosition.bottom, wbitem2, window.wbManager.lineSnapPosition.top);
+      }
+  }
+
+
 
 }
