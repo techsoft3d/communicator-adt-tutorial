@@ -218,4 +218,53 @@ function setupLayout() {
       }
     });
     myLayout.init();
+
+    buildGraph();
   }
+
+function buildDagreGraph(graph, twins) {
+
+  for (let i = 0; i < twins.value.length; i++) {
+    let twin = twins.value[i];
+    graph.setNode(twin.$dtId, { width: 25, height: 25 });
+
+
+    for (let j = 0; j < twin.relationships.value.length; j++) {
+      let relationship = twin.relationships.value[j];
+      graph.setEdge(relationship.$sourceId, relationship.$targetId);
+    }
+  }
+
+
+}
+ 
+  
+
+
+async function buildGraph() {
+
+  let twins = await get_allTwins();
+
+
+  // Create a new directed graph 
+  var graph = new dagre.graphlib.Graph();
+
+  graph.setDefaultEdgeLabel(function () { return {}; });
+
+  let size = 50;
+
+  graph.setGraph({ marginx: 0, ranksep: size });
+
+  buildDagreGraph(graph, twins);
+
+  dagre.layout(graph);
+
+  for (var v of graph.nodes()) {
+    var n = graph.node(v);
+    if (n != undefined) {
+      
+    }
+    //            }
+}
+
+}
