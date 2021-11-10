@@ -24,6 +24,10 @@
   <script type="text/javascript" src="js/adt_viewer.js"></script>
   <script type="text/javascript" src="js/CustomMarkupItem.js"></script>
 
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/golden-layout/1.5.9/goldenlayout.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/golden-layout/1.5.9/css/goldenlayout-base.css" type="text/css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/golden-layout/1.5.9/css/goldenlayout-light-theme.css" type="text/css" />
+
 
   <link rel="stylesheet" href="css/TreeControl.css" type="text/css" />
   <link rel="stylesheet" href="css/Toolbar.css" type="text/css" />
@@ -35,6 +39,8 @@
   <link rel="stylesheet" href="css/PropertyWindow.css" type="text/css" />
   <link rel="stylesheet" href="css/ViewerSettings.css" type="text/css" />
   <link rel="stylesheet" href="css/jquery.minicolors.css" type="text/css" />
+
+  
 
   <script type="text/javascript" id="viewerStartup">
     var hwv = null;
@@ -69,6 +75,8 @@
             console.log(newMatrices[0].toJson());
         }
       });
+
+      setupLayout();
     }
 
   </script>
@@ -788,7 +796,8 @@
       </div>
     </div>
   </div>
-
+  <div id="adtgraphdiv" style="width:100%;height:100%;position:absolute"></div>
+  <div id="machineinfodiv" style="width:100%;height:100%;position:absolute"></div>
 </body>
 
 </html>

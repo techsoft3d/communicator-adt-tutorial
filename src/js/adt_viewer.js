@@ -144,3 +144,78 @@ function onToggleTrigger() {
     triggerButton.disabled = false;
   }, 5000);
 }
+
+
+
+
+function setupLayout() {
+
+
+  
+  var config = {
+      settings: {
+          showPopoutIcon: false,
+          showMaximiseIcon: true,
+          showCloseIcon: false
+      },
+      content: [
+          {
+              type: 'row',
+              content: [
+                  {
+                  
+                          type: 'component',
+                          componentName: 'Viewer',
+                          isClosable: false,
+                          width: 60,
+                          componentState: { label: 'A' }
+                      
+                  },
+                  {
+                      type: 'column',
+                      width: 40,
+                      height: 35,
+                      content: [
+                          {
+                              type: 'component',
+                              componentName: 'ADT Graph',
+                              isClosable: false,
+                              height: 70,
+                              componentState: { label: 'C' }
+                          },
+                          {
+                              type: 'component',
+                              componentName: 'Machine Info',
+                              isClosable: false,
+                              height: 30,
+                              componentState: { label: 'C' }
+                          }
+                      ]
+                  },
+              ],
+          }]
+  };
+
+
+
+
+    let myLayout = new GoldenLayout(config);
+    myLayout.registerComponent('Viewer', function (container, componentState) {
+      $(container.getElement()).append($("#content"));
+    });
+
+    myLayout.registerComponent('ADT Graph', function (container, componentState) {
+      $(container.getElement()).append($("#adtgraphdiv"));
+    });
+
+    myLayout.registerComponent('Machine Info', function (container, componentState) {
+      $(container.getElement()).append($("#machineinfodiv"));
+    });
+
+    myLayout.on('stateChanged', function () {
+      if (hwv != undefined) {
+        hwv.resizeCanvas();
+      }
+    });
+    myLayout.init();
+  }
