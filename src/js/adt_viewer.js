@@ -243,7 +243,7 @@ function buildDagreGraph(graph, twins, twinhash) {
 
 async function buildGraph() {
 
-  window.wbManager.start("adtgraphdiv");
+  window.wbManager.start("adtgraphdiv", false);
   let twins = await get_allTwins();
 
 
