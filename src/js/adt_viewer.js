@@ -268,9 +268,12 @@ async function buildGraph() {
       };
       let itemid;
       if (twinhash[v].rels.value.length > 0)
-        itemid = window.wbManager.addItem(dims, "rgb(255,0,255)", wbManager.itemShape.circle);
+        itemid = window.wbManager.addItem(dims, "rgb(255,0,255)", wbManager.itemShape.circle,v);
       else
-        itemid = window.wbManager.addItem(dims, "rgb(255,0,0)", wbManager.itemShape.circle);
+      {
+        itemid = window.wbManager.addItem(dims, "rgb(255,0,0)", wbManager.itemShape.circle,v);
+//        itemid = window.wbManager.addHCItem(v,dims,v);
+      }
       twinhash[v].dims = dims;
       twinhash[v].id = itemid;
          
@@ -291,8 +294,8 @@ async function buildGraph() {
 
         window.wbManager.addLine(new Communicator.Point2(twinhash[item1].dims.left + 50 / 2, twinhash[item1].dims.top + 50), new Communicator.Point2(twinhash[item2].dims.left + 50 / 2, twinhash[item2].dims.top), false, true, wbitem1, window.wbManager.lineSnapPosition.bottom, wbitem2, window.wbManager.lineSnapPosition.top);
       }
+
   }
-
-
+  window.wbManager.fitAll();
 
 }
