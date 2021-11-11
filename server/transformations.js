@@ -68,6 +68,8 @@ async function update_transformation(dtid, matrix) {
         value: matrix
       },
     ])
+  }).catch((err) => {
+    console.error(err);
   });
 }
 

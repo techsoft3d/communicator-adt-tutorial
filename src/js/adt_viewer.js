@@ -170,28 +170,36 @@ function onToggleTrigger() {
 }
 
 async function onResetTransformation() {
-  await reset_transformation();
+  hwv.model.setNodeMatrix(twins[twinData["$Fanning"]["nodeId"]], transformationMatrix);
 
-  // Update model transformations
-  let resultData = await query_twins("SELECT * FROM digitaltwins T WHERE IS_DEFINED(T.SCSFile) AND IS_DEFINED(Transformation)");
+  // await reset_transformation();
 
-  resultData.forEach(async (twinData, index) => {
-    console.log(twinData);
-    // twins[twinData["$dtId"]] = {};
-    let array = [];
-    for (let i = 1; i <= 16; i += 1) {
-      array.push(twinData["Transformation"][i]);
-    }
+  // // Update model transformations
+  // let resultData = await query_twins("SELECT * FROM digitaltwins T WHERE IS_DEFINED(T.SCSFile) AND IS_DEFINED(Transformation)");
 
-    let transformationMatrix = Communicator.Matrix.createFromArray(array);
-    hwv.model.setNodeMatrix(twins[twinData["$dtId"]["nodeId"]], transformationMatrix);
-    twins[twinData["$dtId"]["markup"]]
-  });
+  // resultData.forEach(async (twinData) => {
+  //   console.log(twinData);
+  //   // twins[twinData["$dtId"]] = {};
+  //   let array = [];
+  //   for (let i = 1; i <= 16; i += 1) {
+  //     array.push(twinData["Transformation"][i]);
+  //   }
+
+  //   let transformationMatrix = Communicator.Matrix.createFromArray(array);
+  //   console.log(transformationMatrix);
+  //   await hwv.model.setNodeMatrix(twins[twinData["$dtId"]["nodeId"]], transformationMatrix);
+  //   updateMarkupPosition(twinData["$dtId"]);
+  // });
 }
 
-function onLocationUpdate(eventType, nodeIds, initialMatrices, newMatrices) {
+async function onLocationUpdate(eventType, nodeIds, initialMatrices, newMatrices) {
   //handle event finished, model has been moved to a new position
-  console.log(newMatrices[0].toJson());
+  let newMatrix = {};
+  for (let i = 1; i <= 16; i++) {
+    newMatrix[i] = newMatrices[0].m[i-1];
+  }
+  console.log(newMatrix);
   let dtid = getDTID(nodeIds[0]);
+  await update_transformation(dtid, newMatrix);
   updateMarkupPosition(dtid);
 }

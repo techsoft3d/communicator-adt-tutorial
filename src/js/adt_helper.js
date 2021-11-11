@@ -6,13 +6,13 @@ async function query_twins(query) {
   const url = serverUrl + "query_twins";
   let response = await fetch(url, {
     method: 'POST', headers: {
-      'Content-Type': 'application/json',     
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify({query: query})
+    body: JSON.stringify({ query: query })
   })
-  .catch((error) => {
-    console.error('Error:', error);
-  });
+    .catch((error) => {
+      console.error('Error:', error);
+    });
   return await response.json();
 }
 
@@ -28,26 +28,24 @@ async function update_transformation(dtid, matrix) {
   const url = serverUrl + "update_transformation";
   let response = await fetch(url, {
     method: 'POST', headers: {
-      'Content-Type': 'application/json',     
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      dtid: dtid, 
+      dtid: dtid,
       matrix: matrix
     })
   })
-  .catch((error) => {
-    console.error('Error:', error);
-  });
+    .catch((error) => {
+      console.error('Error:', error);
+    });
   return await response.json();
 }
 
 async function reset_transformation() {
   const url = serverUrl + "reset_transformation";
-  let response = await fetch(url, {
+  let reponse = await fetch(url, {
     method: 'POST'
-  })
-  .catch((error) => {
+  }).catch((error) => {
     console.error('Error:', error);
   });
-  return await response.json();
 }
