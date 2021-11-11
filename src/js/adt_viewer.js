@@ -56,8 +56,8 @@ async function updateMarkupPosition(dtid) {
   if (markup != null) {
     let box = await hwv.model.getNodesBounding([twin.nodeId]);
     markup.setPosition(new Communicator.Point3(
-      (box.max.x - box.min.x) / 2 + box.min.x, 
-      box.max.y + 2500, 
+      (box.max.x - box.min.x) / 2 + box.min.x,
+      box.max.y + 2500,
       (box.max.z - box.min.z) / 2 + box.min.z));
     hwv.markupManager.refreshMarkup();
   }
@@ -198,7 +198,7 @@ async function onTransformationUpdate(eventType, nodeIds, initialMatrices, newMa
   //handle event finished, model has been moved to a new position
   let newMatrix = {};
   for (let i = 1; i <= 16; i++) {
-    newMatrix[i] = newMatrices[0].m[i-1];
+    newMatrix[i] = newMatrices[0].m[i - 1];
   }
   let dtid = getDTID(nodeIds[0]);
   updateMarkupPosition(dtid);

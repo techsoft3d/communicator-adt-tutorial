@@ -3,6 +3,8 @@ Shows a basic connection between the [HOOPS Web Platform](https://www.techsoft3d
 
 The web application polls the ADT graph every five seconds and displays metadata for each machine in a chocolate factory processing line. If the vibrational value of grinder goes above 300, the machine is highlighted. Alerts can be triggered and reset from the UI to simulate a real life senario.
 
+Our **live demo** is running at: https://adt-communicator.azurewebsites.net 
+
 ## Requirements
 
 Node.js
@@ -11,10 +13,12 @@ Node.js
 
 ### Setting up the ADT graph
 * Follow this [Microsoft tutorial](https://docs.microsoft.com/en-us/learn/modules/build-azure-digital-twins-graph-for-chocolate-factory/) to set up your digital twin instance.
-* The digital twin models we used can be found in the */digital_twin_models* folder. We made some adjustments to the DTDL files. Compared to the Microsoft tutorial, there are more production steps and each production step has some additional properties.
-* After the digital twin instance is created, please update the *SCSFile* and *Transformation* properties of each grinding step according to */twins-init.txt*.
+* The digital twin models we used can be found in the */digital_twin_models* folder. We made some adjustments to the DTDL files. Compared to the Microsoft tutorial, there are more production steps and each production step has two additional properties: *SCSFile* and *Tranformation*. The default values we use for this demo can be found in */twins-init.js*. They will be automatically uploaded when you first-time launch this web app.
+  
+  ![ADT Node Tree Graph](/readme_pictures/ADT_graph.png)
+
 * In order to use REST API with your digital twin, please register your app following this [tutorial](https://docs.microsoft.com/en-us/learn/modules/ingest-data-into-azure-digital-twins/6-use-rest-apis). Please make sure you have the *tenant_id*, *client_id/app_id*, and *client_secret/password*.
-* Update fields in adt.config.js to reference your ADT instance.
+* Update fields in */adt.config.js* to reference your ADT instance.
 
 ### Running the demo
 `npm install`
@@ -25,7 +29,7 @@ Open a browswer window and navigate to http://localhost:3000/
 
 ## Depolying the demo
 
-Todo
+Before deploying this app, please make sure to change the *serverUrl* in */src/js/adt_helper.js* to match your deployment url.
 
 ## Architecture
 
