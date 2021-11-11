@@ -1,0 +1,64 @@
+{
+  "@id": "dtmi:com:microsoft:iot:e2e:digital_factory:production_step;1",
+  "@type": "Interface",
+  "displayName": "Factory Production Steps - Interface Model",
+  "@context": "dtmi:dtdl:context;2",
+  "extends": "dtmi:com:microsoft:iot:e2e:digital_factory:model_metadata;1",
+  "contents": [
+    {
+      "@type": "Property",
+      "name": "StepId",
+      "schema": "string"
+    },
+    {
+      "@type": [
+        "Property"
+      ],
+      "name": "StartTime",
+      "schema": "dateTime"
+    },
+    {
+      "@type": "Property",
+      "name": "FinalStep",
+      "schema": "boolean"
+    },
+    {
+      "@type": "Property",
+      "name": "OperationStatus",
+      "schema": "dtmi:com:microsoft:iot:e2e:digital_factory:production_step:status;1",
+      "writable": true
+    },
+    {
+      "@type": "Relationship",
+      "@id": "dtmi:com:microsoft:iot:e2e:digital_factory:production_step:rel_step_link;1",
+      "name": "rel_step_link",
+      "displayName": "Step link",
+      "properties": [
+        {
+          "@type": "Property",
+          "name": "FinalStep",
+          "schema": "boolean"
+        }
+      ]
+    }
+  ],
+  "schemas": [
+    {
+      "@id": "dtmi:com:microsoft:iot:e2e:digital_factory:production_step:status;1",
+      "@type": "Enum",
+      "valueSchema": "integer",
+      "enumValues": [
+        {
+          "name": "offline",
+          "displayName": "Offline",
+          "enumValue": 1
+        },
+        {
+          "name": "online",
+          "displayName": "Online",
+          "enumValue": 2
+        }
+      ]
+    }
+  ]
+}

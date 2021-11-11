@@ -1,0 +1,29 @@
+{
+  "@id": "dtmi:com:microsoft:iot:e2e:digital_factory:model_metadata;1",
+  "@type": "Interface",
+  "displayName": "Model Metadata - Interface",
+  "@context": "dtmi:dtdl:context;2",
+  "contents": [
+    {
+      "@type": "Property",
+      "name": "SCSFile",
+      "schema": "string"
+    },
+    {
+      "@type": "Property",
+      "name": "Transformation",
+      "writable": true,
+      "schema": {
+        "@type": "Map",
+        "mapKey": {
+          "name": "index",
+          "schema": "string"
+        },
+        "mapValue": {
+          "name": "value",
+          "schema": "double"
+        }
+      }
+    }
+  ]
+}

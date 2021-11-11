@@ -1,5 +1,5 @@
-# communicator-adt-tutorial
-Shows a basic connection between the [HOOPS Web Platform](https://www.techsoft3d.com/products/hoops/web-platform/) and Azure Digital Twin (ADT).
+# Communicator ADT Tutorial
+Shows a basic connection between the [HOOPS Web Platform](https://www.techsoft3d.com/products/hoops/web-platform/) and [Azure Digital Twin](https://azure.microsoft.com/en-us/services/digital-twins/) (ADT).
 
 The web application polls the ADT graph every five seconds and displays metadata for each machine in a chocolate factory processing line. If the vibrational value of grinder goes above 300, the machine is highlighted. Alerts can be triggered and reset from the UI to simulate a real life senario.
 
@@ -10,14 +10,16 @@ Node.js
 ## Getting Started
 
 ### Setting up the ADT graph
-* Follow https://github.com/Teodelas/digital-twins-samples/tree/master/HandsOnLab
-* Replace ADT_URL in /app.js with the url of your ADT graph
-* Replace CLIENT_ID and AUTHORITY in /js/adt_helper.js to connect to your ADT graph
+* Follow this [Microsoft tutorial](https://docs.microsoft.com/en-us/learn/modules/build-azure-digital-twins-graph-for-chocolate-factory/) to set up your digital twin instance.
+* The digital twin models we used can be found in the */digital_twin_models* folder. We made some adjustments to the DTDL files. Compared to the Microsoft tutorial, there are more production steps and each production step has some additional properties.
+* After the digital twin instance is created, please update the *SCSFile* and *Transformation* properties of each grinding step according to */twins-init.txt*.
+* In order to use REST API with your digital twin, please register your app following this [tutorial](https://docs.microsoft.com/en-us/learn/modules/ingest-data-into-azure-digital-twins/6-use-rest-apis). Please make sure you have the *tenant_id*, *client_id/app_id*, and *client_secret/password*.
+* Update fields in adt.config.js to reference your ADT instance.
 
 ### Running the demo
-npm install
+`npm install`
 
-node app.js
+`node app.js`
 
 Open a browswer window and navigate to http://localhost:3000/
 
@@ -32,8 +34,6 @@ Todo
 * /js/adt_helper.js contains functions for querying data from the API found in app.js
 * /app.js is an Node.js Express server that serves html and has a very basic API for relaying queries to and from the ADT graph. This server is used to prevent CORS errors. 
 
-## Connecting to your own ADT Graph
-
 ## Todo
 1. Remove dependance on app.js to relay requests to ADT api but instead use a proxy severvice like ADT_Explorer does
 2. Remove 5 second polling and replace with real time SingalR updates
@@ -47,5 +47,3 @@ Todo
 [quy49ctu](https://grabcad.com/quy49ctu-1)
 [Erkan](https://grabcad.com/erkan--4)
 [nowa](https://grabcad.com/nowa-1)
-
-
