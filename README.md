@@ -12,6 +12,7 @@ Node.js
 ## Getting Started
 
 ### Setting up the ADT graph
+
 * Follow this [Microsoft tutorial](https://docs.microsoft.com/en-us/learn/modules/build-azure-digital-twins-graph-for-chocolate-factory/) to set up your digital twin instance.
 * The digital twin models we used can be found in the */digital_twin_models* folder. We made some adjustments to the DTDL files. Compared to the Microsoft tutorial, there are more production steps and each production step has two additional properties: *SCSFile* and *Tranformation*. The default values we use for this demo can be found in */twins-init.js*. They will be automatically uploaded when you first-time launch this web app.
   
@@ -21,6 +22,7 @@ Node.js
 * Update fields in */adt.config.js* to reference your ADT instance.
 
 ### Running the demo
+
 `npm install`
 
 `node app.js`
