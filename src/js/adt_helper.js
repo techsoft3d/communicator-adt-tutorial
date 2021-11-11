@@ -53,7 +53,6 @@ async function update_transformation(dtid, matrix) {
 }
 
 async function reset_transformations() {
-  console.log("adt_helpter reset trans");
   const url = serverUrl + "reset_transformations";
   return await fetch(url, {
     method: 'POST'

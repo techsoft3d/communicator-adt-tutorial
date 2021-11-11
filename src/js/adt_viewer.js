@@ -172,30 +172,26 @@ function onToggleTrigger() {
 }
 
 async function onResetTransformations() {
-  console.log("reset trans")
+  resetButton.disabled = true;
 
-  let rr = await reset_transformations();
-  console.log(rr);
+  await reset_transformations();
 
   console.log("reset complete");
 
   // Update model transformations
   let resultData = await query_twins("SELECT * FROM digitaltwins T WHERE IS_DEFINED(T.SCSFile) AND IS_DEFINED(Transformation)");
 
-  resultData.forEach(async (twinData) => {
-    console.log(twinData);
-    // twins[twinData["$dtId"]] = {};
+  for (let twinData of resultData) {
     let array = [];
     for (let i = 1; i <= 16; i += 1) {
       array.push(twinData["Transformation"][i]);
     }
 
     let transformationMatrix = Communicator.Matrix.createFromArray(array);
-    console.log(transformationMatrix);
     await hwv.model.setNodeMatrix(twins[twinData["$dtId"]]["nodeId"], transformationMatrix);
-    console.log("set complete");
-    updateMarkupPosition(twinData["$dtId"]);
-  });
+    await updateMarkupPosition(twinData["$dtId"]);
+  }
+  resetButton.disabled = false;
 }
 
 async function onTransformationUpdate(eventType, nodeIds, initialMatrices, newMatrices) {
@@ -207,5 +203,5 @@ async function onTransformationUpdate(eventType, nodeIds, initialMatrices, newMa
   let dtid = getDTID(nodeIds[0]);
   updateMarkupPosition(dtid);
   await update_transformation(dtid, newMatrix);
-  console.log(newMatrix);
+  console.log(newMatrices[0].m);
 }
