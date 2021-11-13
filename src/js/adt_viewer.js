@@ -292,7 +292,7 @@ async function buildGraph() {
         let wbitem1 = twinhash[relationship.$sourceId].id;
         let wbitem2 = twinhash[relationship.$targetId].id;
 
-        window.wbManager.addLine(new Communicator.Point2(twinhash[item1].dims.left + 50 / 2, twinhash[item1].dims.top + 50), new Communicator.Point2(twinhash[item2].dims.left + 50 / 2, twinhash[item2].dims.top), false, true, wbitem1, window.wbManager.lineSnapPosition.bottom, wbitem2, window.wbManager.lineSnapPosition.top);
+        window.wbManager.addLine(new Communicator.Point2(twinhash[item1].dims.left + 50 / 2, twinhash[item1].dims.top + 50), new Communicator.Point2(twinhash[item2].dims.left + 50 / 2, twinhash[item2].dims.top), false, true, wbitem1, window.wbManager.lineSnapPosition.bottom, wbitem2, window.wbManager.lineSnapPosition.top,relationship.$relationshipName);
       }
 
   }
