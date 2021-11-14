@@ -2,6 +2,7 @@ let currentSelection = null;
 let triggerButton = null;
 // {dtid: {nodeId, markup}}
 let twins = {};
+let twinhash = [];
 
 async function createMarkup(twinData) {
     let twin = twins[twinData["$dtId"]];
@@ -185,7 +186,7 @@ function setupLayout() {
                           },
                           {
                               type: 'component',
-                              componentName: 'Machine Info',
+                              componentName: 'Twin Info',
                               isClosable: false,
                               height: 30,
                               componentState: { label: 'C' }
@@ -208,8 +209,8 @@ function setupLayout() {
       $(container.getElement()).append($("#adtgraphdiv"));
     });
 
-    myLayout.registerComponent('Machine Info', function (container, componentState) {
-      $(container.getElement()).append($("#machineinfodiv"));
+    myLayout.registerComponent('Twin Info', function (container, componentState) {
+      $(container.getElement()).append($("#twininfodiv"));
     });
 
     myLayout.on('stateChanged', function () {
@@ -227,7 +228,7 @@ function buildDagreGraph(graph, twins, twinhash) {
   for (let i = 0; i < twins.value.length; i++) {
     let twin = twins.value[i];
     graph.setNode(twin.$dtId, { width: 50, height: 50 });
-    twinhash[twin.$dtId] = {rels: twin.relationships, dims:null, id:null};
+    twinhash[twin.$dtId] = {twin: twin, dims:null, id:null};
     for (let j = 0; j < twin.relationships.value.length; j++) {
       let relationship = twin.relationships.value[j];
       graph.setEdge(relationship.$sourceId, relationship.$targetId);
@@ -236,14 +237,22 @@ function buildDagreGraph(graph, twins, twinhash) {
 
 
 }
+
+
+
+function graphSelectCallback(selection_items)
+{
+  if (selection_items.length>0)
+  {
+    var text = JSON.stringify(twinhash[selection_items[0].title].twin, undefined, 4);
+    $("#twininfodiv").empty();
+    $("#twininfodiv").append('<pre>' + text + '</pre>');
+  }  
+}
  
-  var menuOpen = false;
-  var blockRightClick = false;
-
-
 async function buildGraph() {
 
-  window.wbManager.start("adtgraphdiv", false);
+  window.wbManager.start("adtgraphdiv", false,null,null,graphSelectCallback);
   let twins = await get_allTwins();
 
 
@@ -255,7 +264,6 @@ async function buildGraph() {
 
   graph.setGraph({ marginx: 0, ranksep: 100 });
 
-  let twinhash = [];
   buildDagreGraph(graph, twins, twinhash);
 
   dagre.layout(graph);
@@ -267,7 +275,7 @@ async function buildGraph() {
         left: n.x, top: n.y, width: 50, height: 50
       };
       let itemid;
-      if (twinhash[v].rels.value.length > 0)
+      if (twinhash[v].twin.relationships.value.length > 0)
         itemid = window.wbManager.addItem(dims, "rgb(255,0,255)", wbManager.itemShape.circle,v);
       else
       {
@@ -282,7 +290,7 @@ async function buildGraph() {
 
   for (var i in twinhash) {
 
-    let rels = twinhash[i].rels;
+    let rels = twinhash[i].twin.relationships;
       for (let j = 0; j < rels.value.length; j++) {
         let relationship = rels.value[j];
 
@@ -296,6 +304,7 @@ async function buildGraph() {
       }
 
   }
+ 
   window.wbManager.fitAll();
 
 }
