@@ -25,9 +25,9 @@ Node.js
 
 `npm install`
 
-`node app.js`
+`npm start`
 
-Open a browswer window and navigate to http://localhost:3000/
+Open a browwer window and navigate to http://localhost:3000/
 
 ## Depolying the demo
 
