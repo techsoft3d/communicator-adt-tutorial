@@ -90,7 +90,7 @@ async function loadModel() {
 }
 
 async function poll() {
-  let adtData = await query_twins("SELECT * FROM digitaltwins T WHERE IS_DEFINED(T.SCSFile) AND IS_DEFINED(Transformation)");
+  let adtData = await query_twins("SELECT * FROM digitaltwins T WHERE IS_DEFINED(SCSFile) AND IS_DEFINED(Transformation)");
   adtData.forEach(twinData => {
     updateMarkupText(twinData);
     twin = twins[twinData["$dtId"]];

@@ -2,6 +2,7 @@ const fetch = require('node-fetch');
 const msal = require('../server/msal');
 const random_update_data = require("./random_update_data");
 const transformation = require('./transformations');
+const query_twins = require('./query').query_twins;
 
 const adtConfig = require('../adt.config');
 const ADT_URL = 'https://' + adtConfig.hostname + '/';
@@ -22,26 +23,12 @@ exports.resetAlert = async (req, res, next) => {
 
 exports.queryTwins = async (req, res, next) => {
   countdown = UPDATE_TIMEOUT;
-  let token = await msal.getToken();
-
-  const url = ADT_URL + 'query?api-version=2020-10-31';
-
-  let response = await fetch(url, {
-    method: 'POST', headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + token
-    },
-    body: JSON.stringify({ query: req.body.query })
-  })
-    .catch((err) => {
-      res.status(418).send(err);
-    });
-
-  var data = await response.json();
-
-  res.send(data.value);
-};
-
+  try {
+    res.send(await query_twins(req.body.query));
+  } catch (err) {
+    res.status(418).send(err);
+  }
+}
 
 //retrieve all ADT models
 exports.getModels = async (req, res, next) => {
