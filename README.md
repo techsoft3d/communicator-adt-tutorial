@@ -7,7 +7,7 @@ Our **live demo** is running at: https://adt-communicator.azurewebsites.net
 
 ## Requirements
 
-Node.js
+Node.js 17.0.1
 
 ## Getting Started
 
