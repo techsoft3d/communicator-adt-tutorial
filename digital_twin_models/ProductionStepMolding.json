@@ -1,0 +1,28 @@
+{
+  "@id": "dtmi:com:microsoft:iot:e2e:digital_factory:production_step_molding;1",
+  "@type": "Interface",
+  "displayName": "Factory Production Step: Molding - Interface Model",
+  "extends": "dtmi:com:microsoft:iot:e2e:digital_factory:production_step;1",
+  "@context": "dtmi:dtdl:context;2",
+  "contents": [
+    {
+      "@type": [
+        "Property",
+        "Temperature"
+      ],
+      "name": "ChasisTemperature",
+      "schema": "double",
+      "unit": "degreeCelsius",
+      "writable": true
+    },
+    {
+      "@type": [
+        "Property",
+        "Power"
+      ],
+      "name": "PowerUsage",
+      "schema": "double",
+      "unit": "kilowatt"
+    }
+  ]
+}

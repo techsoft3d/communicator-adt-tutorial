@@ -7,23 +7,21 @@
   <meta name="viewport" content="user-scalable=no">
 
   <title>Web Viewer Desktop</title>
-  <script type="text/javascript" src="js/jquery-3.5.1.min.js"></script>
-  <script type="text/javascript" src="js/jquery-ui.min.js"></script>
-  <script type="text/javascript" src="js/jquery.ui.touch-punch.min.js"></script>
-  <script type="text/javascript" src="js/keymaster.min.js"></script>
-  <script type="text/javascript" src="js/iscroll.min.js"></script>
-  <script type="text/javascript" src="js/mobile-detect.min.js"></script>
+  <script type="text/javascript" src="js/hoops_communicator/jquery-3.5.1.min.js"></script>
+  <script type="text/javascript" src="js/hoops_communicator/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="js/hoops_communicator/jquery.ui.touch-punch.min.js"></script>
+  <script type="text/javascript" src="js/hoops_communicator/keymaster.min.js"></script>
+  <script type="text/javascript" src="js/hoops_communicator/iscroll.min.js"></script>
+  <script type="text/javascript" src="js/hoops_communicator/mobile-detect.min.js"></script>
 
-  <script type="text/javascript" src="js/hoops_web_viewer.js?v=2fc2526" id="hwvScript"></script>
-  <script type="text/javascript" src="js/jquery.minicolors.min.js"></script>
-  <script type="text/javascript" src="js/web_viewer_ui.js?v=2fc2526" id="hwvUI"></script>
-  <script type="text/javascript" src="js/communicator_server_integration.js?v=2fc2526"></script>
-  <script type="text/javascript" src="js/sample.js?v=2fc2526"></script>
+  <script type="text/javascript" src="js/hoops_communicator/hoops_web_viewer.js?v=2fc2526" id="hwvScript"></script>
+  <script type="text/javascript" src="js/hoops_communicator/jquery.minicolors.min.js"></script>
+  <script type="text/javascript" src="js/hoops_communicator/web_viewer_ui.js?v=2fc2526" id="hwvUI"></script>
+  <script type="text/javascript" src="js/hoops_communicator/communicator_server_integration.js?v=2fc2526"></script>
+  <script type="text/javascript" src="js/hoops_communicator/sample.js?v=2fc2526"></script>
 
-  <script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.2.1/js/msal.js"
-    integrity="sha384-9TV1245fz+BaI+VvCjMYL0YDMElLBwNS84v3mY57pXNOt6xcUYch2QLImaTahcOP"
-    crossorigin="anonymous"></script>
   <script type="text/javascript" src="js/adt_helper.js"></script>
+  <script type="text/javascript" src="js/adt_viewer.js"></script>
   <script type="text/javascript" src="js/CustomMarkupItem.js"></script>
 
 
@@ -42,113 +40,7 @@
     var hwv = null;
     var ui = null;
     var md = new MobileDetect(window.navigator.userAgent);
-    var currentSelection = null;
-    var triggerButton = null;
-    var twins = {};
 
-    function createMarkup(twinData) {
-      let twin = twins[twinData["$dtId"]];
-      hwv.model.getNodesBounding([twin.nodeId]).then((box) => {
-        var markup = new CustomMarkupItem(hwv, -5, "",
-          new Communicator.Point3((box.max.x - box.min.x) / 2 + box.min.x, 2500, 0),
-          new Communicator.Point3(0, 1, 0),
-          0);
-        var uid = hwv.markupManager.registerMarkup(markup);
-        hwv.markupManager.refreshMarkup();
-        twin.markup = markup;
-        updateMarkup(twinData);
-      })
-    }
-
-    function loadModel() {
-      query_twins("SELECT * FROM digitaltwins T WHERE IS_DEFINED(T.SCSFile) AND IS_DEFINED(Transformation)").then(result => {
-        let resultData = JSON.parse(result);
-        resultData.forEach(twinData => {
-          console.log(twinData);
-          twins[twinData["$dtId"]] = {};
-          let scsFile = './scs_models/' + twinData["SCSFile"] + ".scs";
-          let array = [];
-          for (let i = 1; i <= 16; i += 1) {
-            array.push(twinData["Transformation"][i]);
-          }
-          let transformationMatrix = Communicator.Matrix.createFromArray(array);
-          hwv.model.loadSubtreeFromScsFile(-2, scsFile, transformationMatrix).then((nodeIds) => {
-            let twin = twins[twinData["$dtId"]];
-            twin.nodeId = nodeIds[0];
-            createMarkup(twinData);
-          });
-        });
-      });
-    }
-
-    function poll() {
-      query_twins("SELECT * FROM digitaltwins T WHERE IS_DEFINED(T.SCSFile) AND IS_DEFINED(Transformation)").then(result => {
-        let adtData = JSON.parse(result);
-        adtData.forEach(twin => {
-          updateMarkup(twin);
-        });
-      });
-    }
-
-    function updateMarkup(twinData) {
-      let twin = twins[twinData["$dtId"]];
-      var text = twinData["$dtId"] + "\n";
-      Object.keys(twinData).forEach(key => {
-        if (key != 'StepId' && key[0] != '$' && key != "SCSFile" && key != "Transformation") {
-          if (typeof (twinData[key]) === "number") {
-            // Round the number to 2 decimal places
-            let number = Number(twinData[key]);
-            number = Math.round((number + Number.EPSILON) * 100) / 100;
-            text = text + key + ": " + number + "\n";
-          } else {
-            text = text + key + ": " + twinData[key] + "\n";
-          }
-        }
-        if (key.includes("Alert")) {
-          if (twinData[key] == true) {
-            hwv.selectionManager.selectNode(twin.nodeId);
-            triggerButton.textContent = "Reset";
-          } else {
-            hwv.selectionManager.clear();
-            triggerButton.textContent = "Trigger";
-          }
-        }
-      });
-
-      const markup = twin.markup;
-      if (markup != null && markup._textBox != null) {
-        markup._textBox.setTextString(text);
-        hwv.markupManager.refreshMarkup();
-      }
-    }
-
-    function sceneReadyFunc() {
-      triggerButton = document.getElementById('trigger-button');
-      loadModel();
-      setInterval(function () {
-        poll();
-      }, 5000);
-
-      hwv.view.setCamera(Communicator.Camera.create(new Communicator.Point3(4102, 2692, 11160),
-        new Communicator.Point3(6755, 867, 3970),
-        new Communicator.Point3(0, 1, 0),
-        7877,
-        7877,
-        0,
-        0.01
-      )
-      );
-    }
-
-    function selectionArrayFunc(events, removed) {
-      if (events[0] != undefined) {
-        currentSelection = events[0]._selection._nodeId;
-      }
-      else {
-        matrix = hwv.getModel().getNodeNetMatrix(currentSelection);
-      }
-
-    }
 
     window.onload = function () {
 
@@ -172,26 +64,8 @@
       viewer.setCallbacks({
         sceneReady: sceneReadyFunc,
         selectionArray: selectionArrayFunc,
+        handleEventEnd: onTransformationUpdate
       });
-    }
-
-    window.onresize = function (event) {
-      // jQuery resizable triggers onresize, check that the call is not coming from a DOM element object
-      if (typeof event.target.getAttribute !== "function" && hwv != null) {
-        hwv.resizeCanvas();
-      }
-    };
-
-    function onToggleTrigger() {
-      if (triggerButton.textContent == "Trigger") {
-        force_alert();
-      } else {
-        reset_alert();
-      }
-      triggerButton.disabled = true;
-      setTimeout(() => {
-        triggerButton.disabled = false;
-      }, 5000);
     }
 
   </script>
@@ -202,6 +76,8 @@
     <div id="viewerContainer"></div>
     <button id="trigger-button" style="position: absolute; top: 10px; right: 10px;"
       onclick="onToggleTrigger()">Trigger</button>
+    <button id="reset-button" style="position: absolute; top: 10px; right: 100px;"
+      onclick="onResetTransformations()">Reset Transformations</button>
     <!-- Toolbar HTML-->
     <div id="toolBar">
       <div class="toolbar-tools">
