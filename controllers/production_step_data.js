@@ -7,11 +7,24 @@ const ADT_URL = 'https://' + adtConfig.hostname + '/';
 /// For randomly updating data on a schedule
 /// Updading Fanning, Grinding, and Molding
 function random_update_data(vibrationAlertTriggered) {
-  update_step_data("fanning", vibrationAlertTriggered);
-  update_step_data("grinding", vibrationAlertTriggered);
-  update_step_data("molding", vibrationAlertTriggered);
-  update_step_data("conching", vibrationAlertTriggered);
-  update_step_data("winnowing", vibrationAlertTriggered);
+  return Promise.all([
+    update_step_data("fanning", vibrationAlertTriggered),
+    update_step_data("grinding", vibrationAlertTriggered),
+    update_step_data("molding", vibrationAlertTriggered),
+    update_step_data("conching", vibrationAlertTriggered),
+    update_step_data("winnowing", vibrationAlertTriggered),
+  ]);
+}
+
+/// Randomly assign initial value to each step
+function initialize_all_steps() {
+  return Promise.all([
+    initialize_step_data("fanning"),
+    initialize_step_data("grinding"),
+    initialize_step_data("molding"),
+    initialize_step_data("conching"),
+    initialize_step_data("winnowing"),
+  ]);
 }
 
 // deviceType: "grinding", "fanning", "conching", "winnowing", or "molding"
@@ -19,19 +32,54 @@ async function update_step_data(deviceType, vibrationAlertTriggered) {
   let token = await msal.getToken();
 
   const url = ADT_URL + 'digitaltwins/' + capitalizeFirstLetter(deviceType) + '?api-version=2020-10-31';
-  let response = await fetch(url, {
+  const data = generate_data(deviceType, vibrationAlertTriggered);
+  var mapped_data = [];
+  for (const [key, value] of Object.entries(data)) {
+    mapped_data.push({
+      op: "replace",
+      path: "/" + key,
+      value: value
+    });
+  }
+
+  return await fetch(url, {
     method: 'PATCH', headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token
     },
-    body: JSON.stringify(generateMessage(deviceType, vibrationAlertTriggered))
+    body: JSON.stringify(mapped_data)
+  });
+
+}
+
+// deviceType: "grinding", "fanning", "conching", "winnowing", or "molding"
+async function initialize_step_data(deviceType) {
+  let token = await msal.getToken();
+
+  const url = ADT_URL + 'digitaltwins/' + capitalizeFirstLetter(deviceType) + '?api-version=2020-10-31';
+  const data = generate_data(deviceType, false);
+  var mapped_data = [];
+  for (const [key, value] of Object.entries(data)) {
+    mapped_data.push({
+      op: "add",
+      path: "/" + key,
+      value: value
+    });
+  }
+
+  return await fetch(url, {
+    method: 'PATCH', headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    },
+    body: JSON.stringify(mapped_data)
   });
 
 }
 
 // Generating message for "grinding", "fanning", or "molding"
 // Return a string
-function generateMessage(deviceType, vibrationAlertTriggered) {
+function generate_data(deviceType, vibrationAlertTriggered) {
   const fanSpeed = 10 + (Math.random() * 4); // range: [10, 14]
   const temperature = 200 + (Math.random() * 10); // range: [200, 300]
   const powerUsage = 60 + (Math.random() * 20); // range: [60, 80]
@@ -68,16 +116,7 @@ function generateMessage(deviceType, vibrationAlertTriggered) {
       };
   }
 
-  var mapped_data = [];
-  for (const [key, value] of Object.entries(data)) {
-    mapped_data.push({
-      op: "replace",
-      path: "/" + key,
-      value: value
-    });
-  }
-
-  return mapped_data;
+  return data;
 }
 
 // Utility Function
@@ -85,4 +124,7 @@ function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-module.exports = random_update_data;
+module.exports = {
+  random_update_data,
+  initialize_all_steps
+};
