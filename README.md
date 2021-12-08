@@ -43,7 +43,7 @@ The complete architecture of this application is shown below. Codes in this repo
 
 * In order to use REST API with your digital twin, please register your app following this [tutorial from Microsoft](./readme_assets/use-rest-apis.pdf). Please make sure you have the *tenant_id*, *client_id/app_id*, *client_secret/password*, and *hostname*.
 
-* Update fields in */adt.config.js* to accordingly. The hostname.
+* Update fields in */adt.config.js* to accordingly.
 
 ### Running the demo
 
