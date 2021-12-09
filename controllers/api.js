@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 const msal = require('../server/msal');
-const random_update_data = require("./random_update_data");
+const production_step_data = require("./production_step_data");
 const transformation = require('./transformations');
 const query_twins = require('./query').query_twins;
 
@@ -99,6 +99,6 @@ setInterval(() => {
     countdown = 0;
   } else {
     countdown -= 5;
-    random_update_data(vibrationAlertTriggered);
+    production_step_data.random_update_data(vibrationAlertTriggered);
   }
 }, 5000);
