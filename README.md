@@ -18,7 +18,7 @@ Azure Active Directory
 
 The complete architecture of this application is shown below. This repository contains only the frontend web app and the backend node server. Azure services will need to be setup separately for this app to work. (See "Getting Started" below)
 * /src contains the code for the frontend application. /src/index.html is based on hoop_web_viewer_sample.html from the HOOPS Web Platform installation with small edits to show demo functionality.
-* /objects.json contains the mapping between ADT objects and the CAD models, as well as the 3D world transforms to place the objects (since ADT does not contain this information)
+* /twins-init.js contains the .scs file names and the initial transformations for models in this demo. They will be used to automatically populate the ADT nodes when this application starts for the first time.
 * /app.js is a Node.js Express server that serves the frontend application, authenticates and interacts with the ADT graph.
 
 ![ADT Node Tree Graph](/readme_assets/App_Architecture.png)
